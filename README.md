@@ -36,3 +36,14 @@ the changes in as a new tag using
 If you do not provide a new tag, then YYYY-MM-DD_vN will be used, where
 YYYY-MM-DD is today's date, and N is a unique integer, starting with 1.
 For instance, 2017-09-17_v1.
+
+## TODO
+
+Once we're comfortable that the overall usage meets our needs, we will
+rewrite it - probably in golang.  The CoW fs backend will be pluggable,
+so that btrfs, zfs, aufs, and lvm should all be (eventually) usable.
+
+lpack will become a single command, i.e. 'lpack [checkin|ci]'.
+
+The 'lpack checkin' command will be fixed to not require an unpack and
+repack - ideally just a diff and generation of a json index.
