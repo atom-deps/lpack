@@ -70,7 +70,7 @@ unpack() {
 }
 
 for l in ${labels}; do
-	layers=`umoci stat --image ${layoutdir}:$l | grep sha256 | cut -c 8-72`
+	layers=`umoci stat --image ${layoutdir}:$l | grep sha256 | cut -c 8-71`
 	if [ -z "${layers}" ]; then
 		mkdir -p "${basedir}/overlay/${l}/target"
 		touch "${basedir}/overlay/$l/empty"
