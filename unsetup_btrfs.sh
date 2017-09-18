@@ -1,6 +1,7 @@
-#!/bin/bash -xe
-# lpack_unmount.sh: unmount an overlay-unpacked OCI image, but keep
-#  the upperdir (delta) contents
+#!/bin/bash
+# unsetup_btrfs.sh: remove btrfs on a mounted loopback fs
+#  Note - this will remove the loopback file, erasing all your data
+
 # Copyright (C) 2017 Cisco Inc
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,11 +16,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-if [ $(id -u) != 0 ]; then
-	echo "be root"
-	exit 1
+
+. common.sh
+
+id_check
+
+if mountpoint -q "${btrfsmount}"; then
+	umount -l "${btrfsmount}"
+	sleep 2
+	rmdir "${btrfsmount}"
 fi
 
-basedir=$(pwd)
-
-find "${basedir}/overlay" -name target | xargs sudo umount -l
+if [ -f "${lofile}" ]; then
+	rm "${lofile}"
+fi

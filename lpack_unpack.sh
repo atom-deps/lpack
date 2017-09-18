@@ -41,12 +41,11 @@ unpack() {
 		echo "Missing blob in OCI image: $3"
 		exit 1
 	fi
-	mkdir -p "$dest"
-	if mountpoint -q "${dest}"; then
+	if [ -d "${dest}" ]; then
 		return
 	fi
 	if [ "$2" = "first" ]; then
-		btrfs subvolume create "${dest}"
+		btrfs subvolume create "${dest}" || true
 	else
 		lower="${basedir}/btrfs/$2"
 		btrfs subvolume snapshot "${lower}" "${dest}"
@@ -58,7 +57,7 @@ unpack() {
 for l in ${labels}; do
 	layers=`umoci stat --image ${layoutdir}:$l | grep sha256 | cut -c 8-71`
 	if [ -z "${layers}" ]; then
-		btrfs subvolume create "${basedir}/btrfs/${l}"
+		btrfs subvolume create "${basedir}/btrfs/${l}" || true
 		continue
 	fi
 	prev="first"

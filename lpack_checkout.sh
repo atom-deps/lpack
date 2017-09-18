@@ -17,21 +17,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-if [ $(id -u) != 0 ]; then
-	echo "be root"
-	exit 1
-fi
-
-basedir=$(pwd)
-layoutdir="${basedir}/oci"
+. common.sh
+id_check
 
 if [ $# = 0 ]; then
 	echo "Usage: $0 tag"
 	exit 1
 fi
 
-if mountpoint -q "${basedir}/overlay/mounted"; then
-	echo "\"$(cat ${basedir}/overlay/mounted_tag)\" is already checked out"
+if [ -d "${basedir}/btrfs/mounted" ]; then
+	echo "\"$(cat ${basedir}/btrfs.mounted_tag)\" is already checked out"
 	echo "Please check it in first."
 	exit 1
 fi
@@ -48,13 +43,9 @@ if [ -z "${tag}" ]; then
 	exit 1
 fi
 
-echo "${tag}" > "${basedir}/overlay/mounted_tag"
+echo "$1" > "${basedir}/btrfs.mounted_tag"
 
-lower="${basedir}/overlay/${tag}/target"
-upper="${basedir}/overlay/upper"
-work="${basedir}/overlay/work"
-dest="${basedir}/overlay/mounted"
-rm -rf "${upper}" "${work}" "${dest}"
-mkdir -p "${upper}" "${work}" "${dest}"
-mount -t overlay -o "lowerdir=${lower},upperdir=${upper},workdir=${work}" "lpack" "${dest}"
-echo "$1 is checked out and mounted under ${basedir}/overlay/mounted"
+lower="${basedir}/btrfs/${tag}"
+dest="${basedir}/btrfs/mounted"
+btrfs subvolume snapshot "${lower}" "${dest}"
+echo "$1 is checked out and mounted under ${basedir}/btrfs/mounted"
