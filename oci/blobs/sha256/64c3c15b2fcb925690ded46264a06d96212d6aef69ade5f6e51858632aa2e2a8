@@ -1,0 +1,1 @@
+{"created":"2017-09-17T18:38:56.833641553-05:00","architecture":"amd64","os":"linux","config":{},"rootfs":{"type":"layers","diff_ids":["sha256:bfa2f45e24abe903f0473f77fc0ca1b35ef98dee0106d42b5cfbff6ff40192d6"]},"history":[{"created":"2017-09-17T18:39:33.891358493-05:00","created_by":"umoci config"}]}
