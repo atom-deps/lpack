@@ -14,17 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-if [ $(id -u) != 0 ]; then
-	echo "be root"
-	exit 1
-fi
+. common.sh
+id_check
 
-basedir=$(pwd)
-layoutdir="${basedir}/oci"
-
-mkdir -p "${basedir}/overlay"
-if [ ! -d "${basedir}/overlay" ]; then
-	echo "${basedir}/overlay does not exist; skipping"
+if [ ! -d "${basedir}/btrfs" ]; then
+	echo "${basedir}/btrfs does not exist; skipping"
 	exit 0
 fi
 
@@ -42,7 +36,7 @@ remove_whiteouts() {
 
 unpack() {
 	blob="$1/blobs/sha256/$3"
-	dest="$basedir/overlay/$3/target"
+	dest="$basedir/btrfs/$3"
 	if [ ! -f "${blob}" ]; then
 		echo "Missing blob in OCI image: $3"
 		exit 1
@@ -51,29 +45,20 @@ unpack() {
 	if mountpoint -q "${dest}"; then
 		return
 	fi
-	needunpack="yes"
-	if [ "$2" != "first" ]; then
-		lower="${basedir}/overlay/$2/target"
-		work="${basedir}/overlay/$3/work"
-		upper="${basedir}/overlay/$3/upper"
-		if [ -d "${work}" ]; then
-			# Contents never change, so after a reboot don't untar
-			needunpack="no"
-		fi
-		mkdir -p "$lower" "$work" "$upper"
-		mount -t overlay -o "lowerdir=${lower},upperdir=${upper},workdir=${work}" "$3" "${dest}"
+	if [ "$2" = "first" ]; then
+		btrfs subvolume create "${dest}"
+	else
+		lower="${basedir}/btrfs/$2"
+		btrfs subvolume snapshot "${lower}" "${dest}"
 	fi
-	if [ "$needunpack" = "yes" ]; then
-		tar -C "${dest}" -xvf "${blob}"
-	fi
+	tar -C "${dest}" -xvf "${blob}"
 	remove_whiteouts "${dest}"
 }
 
 for l in ${labels}; do
 	layers=`umoci stat --image ${layoutdir}:$l | grep sha256 | cut -c 8-71`
 	if [ -z "${layers}" ]; then
-		mkdir -p "${basedir}/overlay/${l}/target"
-		touch "${basedir}/overlay/$l/empty"
+		btrfs subvolume create "${basedir}/btrfs/${l}"
 		continue
 	fi
 	prev="first"
