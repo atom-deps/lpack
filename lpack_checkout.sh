@@ -43,7 +43,7 @@ if [ -z "${tag}" ]; then
 	exit 1
 fi
 
-echo "$1" > "${basedir}/btrfs.mounted_tag"
+echo "${tag}" > "${basedir}/btrfs.mounted_tag"
 
 lower="${basedir}/btrfs/${tag}"
 dest="${basedir}/btrfs/mounted"

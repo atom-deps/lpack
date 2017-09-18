@@ -48,27 +48,38 @@ if [ ! -d "${basedir}/btrfs/mounted" ]; then
 	exit 1
 fi
 
-# XXX must be a better way to do this.  Probably using golang library.
-# For now, we unpack the original_tag, copy btrfs/mounted in place of
-# rootfs, and then regen
-# Ideally we would just generate a new tarball and generate the new
-# tag for it ourselves.
-# Failing that, we need to keep the full unpacked tree for each label,
-# including index.json, so that we can repack without
-
-rm -rf "${basedir}/WORKSPACE"
-if [ ! -f "${basedir}/btrfs.mounted_tag" ]; then
-	echo "No reference tag: don't know how to checkin"
-	exit 1
-fi
-
-workspace="${basedir}/WORKSPACE"
 reftag="$(cat ${basedir}/btrfs.mounted_tag)"
-umoci unpack --image "${layoutdir}:${reftag}" "${workspace}"
-rsync -va "${basedir}/btrfs/mounted/" "${workspace}/rootfs"
-umoci repack --image "${layoutdir}:${newtag}" "${workspace}"
+workspace="${basedir}/WORKSPACE"
 rm -rf "${workspace}"
+mkdir ${workspace}
 
-# being lazy - make sure to unpack the new tag
-./lpack_unpack.sh
-btrfs subvolume delete "${basedir}/btrfs/mounted"
+diff --no-dereference -Nrq "${basedir}/btrfs/${reftag}" "${basedir}/btrfs/mounted" | while read line; do
+	# TODO - this is obviously insufficient - needs to i.e.
+	# maintain mtime etc.  That will all be fixed when we just
+	# start using the oci or umoci go libraries.
+	set - $line
+	full1="$2"
+	full2="$4"
+	f2=`echo "${full2}" | sed -e 's@btrfs/[^/]*/@@'`
+	dir=`dirname "${f2}"`
+	fnam2=`basename "${f2}"`
+	if [ ! -z "$(dir)" ]; then
+		mkdir -p "${workspace}/${dir}"
+	fi
+	if [ ! -e "${full2}" -a ! -h "${full2}" ]; then
+		# whiteout
+		mknod "${workspace}/${dir}/.wh_${fnam2}" c 0 0
+	else
+		if [ -d "${full1}" ]; then
+			mkdir "${workspace}/${f2}"
+		else
+			cp -a "${full2}" "${workspace}/${f2}"
+		fi
+	fi
+done
+
+tar --acls --xattrs -jcf ./WORKSPACE.tgz -C "${workspace}"
+newshasum=`sha256sum WORKSPACE.tgz`
+mv WORKSPACE.tgz "${layoutdir}/blobs/sha256/${newshasum}
+mv "${basedir}/btrfs/mounted" "${basedir}/btrfs/${newshasum}"
+echo add_oci_tag.sh "${layoutdir}/index.json" "${newtag}" "${newshasum}"

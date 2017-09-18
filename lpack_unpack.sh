@@ -50,7 +50,7 @@ unpack() {
 		lower="${basedir}/btrfs/$2"
 		btrfs subvolume snapshot "${lower}" "${dest}"
 	fi
-	tar -C "${dest}" -xvf "${blob}"
+	tar --acls --xattrs -C "${dest}" -xvf "${blob}"
 	remove_whiteouts "${dest}"
 }
 
