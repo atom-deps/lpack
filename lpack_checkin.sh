@@ -53,14 +53,22 @@ workspace="${basedir}/WORKSPACE"
 rm -rf "${workspace}"
 mkdir ${workspace}
 
+#cleanup() {
+#	rm -rf "${workspace}"
+#}
+#trap cleanup EXIT
+
 diff --no-dereference -Nrq "${basedir}/btrfs/${reftag}" "${basedir}/btrfs/mounted" | while read line; do
 	# TODO - this is obviously insufficient - needs to i.e.
 	# maintain mtime etc.  That will all be fixed when we just
 	# start using the oci or umoci go libraries.
+	echo $line
 	set - $line
 	full1="$2"
 	full2="$4"
-	f2=`echo "${full2}" | sed -e 's@btrfs/[^/]*/@@'`
+	cmp="${basedir}/btrfs/mounted/"
+	len=${#cmp}
+	f2=`echo ${full2} | cut -c ${len}-`
 	dir=`dirname "${f2}"`
 	fnam2=`basename "${f2}"`
 	if [ ! -z "$(dir)" ]; then
@@ -78,8 +86,9 @@ diff --no-dereference -Nrq "${basedir}/btrfs/${reftag}" "${basedir}/btrfs/mounte
 	fi
 done
 
-tar --acls --xattrs -jcf ./WORKSPACE.tgz -C "${workspace}"
-newshasum=`sha256sum WORKSPACE.tgz`
-mv WORKSPACE.tgz "${layoutdir}/blobs/sha256/${newshasum}
+(cd "${workspace}"; tar --acls --xattrs -cf ../WORKSPACE.tar .)
+newshasum=`sha256sum WORKSPACE.tar | awk '{ print $1 }'`
+gzip -n WORKSPACE.tar
+mv WORKSPACE.tar.gz "${layoutdir}/blobs/sha256/${newshasum}"
 mv "${basedir}/btrfs/mounted" "${basedir}/btrfs/${newshasum}"
-add_oci_tag.py "${layoutdir}/index.json" "${reftag}" "${newtag}" "${newshasum}"
+./add_oci_tag.py "${layoutdir}/index.json" "${reftag}" "${newtag}" "${newshasum}"
