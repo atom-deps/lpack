@@ -82,4 +82,4 @@ tar --acls --xattrs -jcf ./WORKSPACE.tgz -C "${workspace}"
 newshasum=`sha256sum WORKSPACE.tgz`
 mv WORKSPACE.tgz "${layoutdir}/blobs/sha256/${newshasum}
 mv "${basedir}/btrfs/mounted" "${basedir}/btrfs/${newshasum}"
-echo add_oci_tag.sh "${layoutdir}/index.json" "${newtag}" "${newshasum}"
+add_oci_tag.py "${layoutdir}/index.json" "${reftag}" "${newtag}" "${newshasum}"
