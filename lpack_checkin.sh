@@ -87,8 +87,9 @@ diff --no-dereference -Nrq "${basedir}/btrfs/${reftag}" "${basedir}/btrfs/mounte
 done
 
 (cd "${workspace}"; tar --acls --xattrs -cf ../WORKSPACE.tar .)
-newshasum=`sha256sum WORKSPACE.tar | awk '{ print $1 }'`
+diffshasum=`sha256sum WORKSPACE.tar | awk '{ print $1 }'`
 gzip -n WORKSPACE.tar
+newshasum=`sha256sum WORKSPACE.tar.gz | awk '{ print $1 }'`
 mv WORKSPACE.tar.gz "${layoutdir}/blobs/sha256/${newshasum}"
 mv "${basedir}/btrfs/mounted" "${basedir}/btrfs/${newshasum}"
-./add_oci_tag.py "${layoutdir}/index.json" "${reftag}" "${newtag}" "${newshasum}"
+./add_oci_tag.py "${layoutdir}/index.json" "${reftag}" "${newtag}" "${diffshasum}" "${newshasum}"

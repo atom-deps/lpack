@@ -34,10 +34,10 @@ def load_manifest_data(sha):
 # newsha is the sha256sum of our new layer
 # we have to create a new config file listing our newsha as
 # a new layer
-def set_new_config_file(manifest_data, newsha):
+def set_new_config_file(manifest_data, diffsum, newsha):
     config_shasum = manifest_data["config"]["digest"][7:]
     config_data = load_manifest_data(config_shasum)
-    config_data["rootfs"]["diff_ids"].append("sha256:" + newsha)
+    config_data["rootfs"]["diff_ids"].append("sha256:" + diffsum)
     config_data["history"].append({
             #"created": datetime.now().isoformat(),
             "created_by": "lpack" })
@@ -55,14 +55,15 @@ def set_new_config_file(manifest_data, newsha):
     manifest_data["config"]["size"] = os.stat(newname).st_size
     manifest_data["Create"] = datetime.now().isoformat()
 
-if len(sys.argv) != 5:
+if len(sys.argv) != 6:
     print "Insufficient arguments"
     sys.exit(1)
 
 oci_idx_file = sys.argv[1]
 reftag = sys.argv[2]
 newtag = sys.argv[3]
-blobsum = sys.argv[4]
+diffsum = sys.argv[4]
+blobsum = sys.argv[5]
 with open(oci_idx_file) as filedata:
     ocidata = json.load(filedata)
 
@@ -87,7 +88,7 @@ newentry["digest"] = "sha256:" + blobsum
 newentry["size"] = os.stat("oci/blobs/sha256/" + blobsum).st_size
 
 manifest_data["layers"].append(newentry)
-set_new_config_file(manifest_data, blobsum)
+set_new_config_file(manifest_data, diffsum, blobsum)
 
 # Write this as a new file, get sha256sum, put it into place under blobs/sha256
 # TODO use tmpfile
