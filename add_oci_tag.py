@@ -20,8 +20,17 @@ import sys
 import json
 import hashlib
 
-basename = "oci"
-blobdir = basename + "/blobs/sha256"
+if len(sys.argv) != 6:
+    print "Insufficient arguments"
+    sys.exit(1)
+
+basedir = sys.argv[1]
+oci_idx_file = basedir + "/index.json"
+reftag = sys.argv[2]
+newtag = sys.argv[3]
+diffsum = sys.argv[4]
+blobsum = sys.argv[5]
+blobdir = basedir + "/blobs/sha256"
 
 def load_manifest_data(sha):
     data = None
@@ -55,15 +64,6 @@ def set_new_config_file(manifest_data, diffsum, newsha):
     manifest_data["config"]["size"] = os.stat(newname).st_size
     manifest_data["Create"] = datetime.now().isoformat()
 
-if len(sys.argv) != 6:
-    print "Insufficient arguments"
-    sys.exit(1)
-
-oci_idx_file = sys.argv[1]
-reftag = sys.argv[2]
-newtag = sys.argv[3]
-diffsum = sys.argv[4]
-blobsum = sys.argv[5]
 with open(oci_idx_file) as filedata:
     ocidata = json.load(filedata)
 
@@ -79,33 +79,34 @@ if oldentry is None:
     sys.exit(1)
 
 # Open the old ref, append our new layer info
-oldfnam = "oci/blobs/sha256/" + oldentry
+oldfnam = basedir + "/blobs/sha256/" + oldentry
 with open(oldfnam) as filedata:
     manifest_data =  json.load(filedata)
 newentry = {}
 newentry["mediaType"] = "application/vnd.oci.image.layer.v1.tar+gzip"
 newentry["digest"] = "sha256:" + blobsum
 newentry["size"] = os.stat("oci/blobs/sha256/" + blobsum).st_size
+newentry["size"] = os.stat(basedir + "/blobs/sha256/" + blobsum).st_size
 
 manifest_data["layers"].append(newentry)
 set_new_config_file(manifest_data, diffsum, blobsum)
 
 # Write this as a new file, get sha256sum, put it into place under blobs/sha256
 # TODO use tmpfile
-with open("oci/blobs/sha256/XXX", "w") as outfile:
+with open(basedir + "/blobs/sha256/XXX", "w") as outfile:
     json.dump(manifest_data, outfile)
 
 m = hashlib.sha256()
-with open("oci/blobs/sha256/XXX") as filedata:
+with open(basedir + "/blobs/sha256/XXX") as filedata:
     blobdata = filedata.read()
     m.update(blobdata)
 newsha = m.hexdigest()
 
 newentry = {}
 newentry["mediaType"] = "application/vnd.oci.image.manifest.v1+json"
-newentry["size"] = os.stat("oci/blobs/sha256/XXX").st_size
+newentry["size"] = os.stat(basedir + "/blobs/sha256/XXX").st_size
 newentry["digest"] = "sha256:" + newsha
-os.rename("oci/blobs/sha256/XXX", "oci/blobs/sha256/" + newsha)
+os.rename(basedir + "/blobs/sha256/XXX", basedir + "/blobs/sha256/" + newsha)
 labeldict = {"org.opencontainers.image.ref.name": newtag}
 newentry["annotations"] = labeldict
 

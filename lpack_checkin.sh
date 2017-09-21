@@ -92,4 +92,4 @@ gzip -n WORKSPACE.tar
 newshasum=`sha256sum WORKSPACE.tar.gz | awk '{ print $1 }'`
 mv WORKSPACE.tar.gz "${layoutdir}/blobs/sha256/${newshasum}"
 mv "${basedir}/btrfs/mounted" "${basedir}/btrfs/${newshasum}"
-./add_oci_tag.py "${layoutdir}/index.json" "${reftag}" "${newtag}" "${diffshasum}" "${newshasum}"
+./add_oci_tag.py "${layoutdir}" "${reftag}" "${newtag}" "${diffshasum}" "${newshasum}"
