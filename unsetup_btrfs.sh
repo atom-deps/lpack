@@ -18,7 +18,7 @@
 
 # set -xe
 
-. common.sh
+. $(dirname $0)/common.sh
 
 id_check
 

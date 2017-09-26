@@ -16,7 +16,7 @@
 
 # set -x
 
-. common.sh
+. $(dirname $0)/common.sh
 id_check
 
 if [ ! -d "${btrfsmount}" ]; then

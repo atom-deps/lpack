@@ -14,7 +14,6 @@ btrfsmount="${basedir}/btrfs"
 parse_config() {
     x="$(mktemp)"
     sed -e 's/:[ \t]*/="/;s/$/"/' "$1" > "${x}"
-    cat "${x}"
     . "${x}"
     rm "${x}"
 }
