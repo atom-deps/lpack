@@ -14,7 +14,6 @@ btrfsmount="${basedir}/btrfs"
 parse_config() {
     x="$(mktemp)"
     sed -e 's/:[ \t]*/="/;s/$/"/' "$1" > "${x}"
-    echo "sourcing ${x}"
     cat "${x}"
     . "${x}"
     rm "${x}"
@@ -35,11 +34,6 @@ if [ -f ./atom_config.yaml ]; then
 elif [ -f ~/.config/atom/config.yaml ]; then
     parse_config ~/.config/atom/config.yaml
 fi
-
-echo "basedir: ${basedir}"
-echo "layoutdir: ${layoutdir}"
-echo "lofile: ${lofile}"
-echo "btrfsmount: ${btrfsmount}"
 
 if [ ! -d "${basedir}" ]; then
 	echo "basedir does not exist: ${basedir}"

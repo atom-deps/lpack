@@ -1,4 +1,4 @@
-#!/bin/bash -xe
+#!/bin/bash -e
 # lpack_checkout.sh: 'checkout' an OCI layer.  The checked-out layer
 #  will be in ./overlay/mounted.  Once updated, you can check it in
 #  using "lpack_checkin.sh [newtag]"
@@ -16,6 +16,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+# set -x
 
 . common.sh
 id_check

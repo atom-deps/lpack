@@ -24,15 +24,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-if [ $# -lt 1 ]; then
-    echo "Invalid usage"
+usage() {
+    echo "Usage:"
+    echo "    lpack unpack - unpack an OCI layout into btrfs subvolumes"
+    echo "    lpack checkout tag - checkout @tag to make changes"
+    echo "    lpack checkin newtag - checkin changes, optionally with tag @newtag"
+    echo "    lpack setup - setup btrfs filesystem to unpack into"
+    echo "    lpack unsetup - unsetup btrfs.  Make sure to checkin changes before doing this."
     exit 1
+}
+
+if [ $# -lt 1 ]; then
+    usage
 fi
 
 case "$1" in
     "checkin"|"ci") /usr/share/lpack/lpack_checkin.sh ${@:2};;
     "checkout"|"co") /usr/share/lpack/lpack_checkout.sh ${@:2};;
     "unpack") /usr/share/lpack/lpack_unpack.sh ${@:2};;
-    "setup") /ur/share/lpack/setup_btrfs.sh;;
-    "setup") /ur/share/lpack/unsetup_btrfs.sh;;
+    "setup") /usr/share/lpack/setup_btrfs.sh;;
+    "unsetup") /usr/share/lpack/unsetup_btrfs.sh;;
 esac

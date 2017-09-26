@@ -1,4 +1,4 @@
-#!/bin/bash -xe
+#!/bin/bash -e
 # lpack_unpack.sh: unpack and OCI image into overlayfs layers.
 # Copyright (C) 2017 Cisco Inc
 #
@@ -13,6 +13,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+# set -x
 
 . common.sh
 id_check
