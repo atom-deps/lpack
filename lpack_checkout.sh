@@ -25,7 +25,7 @@ if [ $# = 0 ]; then
 	exit 1
 fi
 
-if [ -d "${basedir}/btrfs/mounted" ]; then
+if [ -d "${btrfsmount}/mounted" ]; then
 	echo "\"$(cat ${basedir}/btrfs.mounted_tag)\" is already checked out"
 	echo "Please check it in first."
 	exit 1
@@ -45,7 +45,7 @@ fi
 
 echo "$1" > "${basedir}/btrfs.mounted_tag"
 
-lower="${basedir}/btrfs/${tag}"
-dest="${basedir}/btrfs/mounted"
+lower="${btrfsmount}/${tag}"
+dest="${btrfsmount}/mounted"
 btrfs subvolume snapshot "${lower}" "${dest}"
-echo "$1 is checked out and mounted under ${basedir}/btrfs/mounted"
+echo "$1 is checked out and mounted under ${btrfsmount}/mounted"

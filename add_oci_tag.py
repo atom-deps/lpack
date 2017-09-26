@@ -24,13 +24,13 @@ if len(sys.argv) != 6:
     print "Insufficient arguments"
     sys.exit(1)
 
-basedir = sys.argv[1]
-oci_idx_file = basedir + "/index.json"
+layoutdir = sys.argv[1]
+oci_idx_file = layoutdir + "/index.json"
 reftag = sys.argv[2]
 newtag = sys.argv[3]
 diffsum = sys.argv[4]
 blobsum = sys.argv[5]
-blobdir = basedir + "/blobs/sha256"
+blobdir = layoutdir + "/blobs/sha256"
 
 def load_manifest_data(sha):
     data = None
@@ -79,34 +79,34 @@ if oldentry is None:
     sys.exit(1)
 
 # Open the old ref, append our new layer info
-oldfnam = basedir + "/blobs/sha256/" + oldentry
+oldfnam = layoutdir + "/blobs/sha256/" + oldentry
 with open(oldfnam) as filedata:
     manifest_data =  json.load(filedata)
 newentry = {}
 newentry["mediaType"] = "application/vnd.oci.image.layer.v1.tar+gzip"
 newentry["digest"] = "sha256:" + blobsum
-newentry["size"] = os.stat("oci/blobs/sha256/" + blobsum).st_size
-newentry["size"] = os.stat(basedir + "/blobs/sha256/" + blobsum).st_size
+newentry["size"] = os.stat(layoutdir + "/blobs/sha256/" + blobsum).st_size
+newentry["size"] = os.stat(layoutdir + "/blobs/sha256/" + blobsum).st_size
 
 manifest_data["layers"].append(newentry)
 set_new_config_file(manifest_data, diffsum, blobsum)
 
 # Write this as a new file, get sha256sum, put it into place under blobs/sha256
 # TODO use tmpfile
-with open(basedir + "/blobs/sha256/XXX", "w") as outfile:
+with open(layoutdir + "/blobs/sha256/XXX", "w") as outfile:
     json.dump(manifest_data, outfile)
 
 m = hashlib.sha256()
-with open(basedir + "/blobs/sha256/XXX") as filedata:
+with open(layoutdir + "/blobs/sha256/XXX") as filedata:
     blobdata = filedata.read()
     m.update(blobdata)
 newsha = m.hexdigest()
 
 newentry = {}
 newentry["mediaType"] = "application/vnd.oci.image.manifest.v1+json"
-newentry["size"] = os.stat(basedir + "/blobs/sha256/XXX").st_size
+newentry["size"] = os.stat(layoutdir + "/blobs/sha256/XXX").st_size
 newentry["digest"] = "sha256:" + newsha
-os.rename(basedir + "/blobs/sha256/XXX", basedir + "/blobs/sha256/" + newsha)
+os.rename(layoutdir + "/blobs/sha256/XXX", layoutdir + "/blobs/sha256/" + newsha)
 labeldict = {"org.opencontainers.image.ref.name": newtag}
 newentry["annotations"] = labeldict
 

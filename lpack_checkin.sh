@@ -43,7 +43,7 @@ else
 	newtag=$(gen_newtag)
 fi
 
-if [ ! -d "${basedir}/btrfs/mounted" ]; then
+if [ ! -d "${btrfsmount}/mounted" ]; then
 	echo "No tags are checked out"
 	exit 1
 fi
@@ -53,12 +53,12 @@ workspace="${basedir}/WORKSPACE"
 rm -rf "${workspace}"
 mkdir ${workspace}
 
-#cleanup() {
-#	rm -rf "${workspace}"
-#}
-#trap cleanup EXIT
+cleanup() {
+	rm -rf "${workspace}"
+}
+trap cleanup EXIT
 
-diff --no-dereference -Nrq "${basedir}/btrfs/${reftag}" "${basedir}/btrfs/mounted" | while read line; do
+diff --no-dereference -Nrq "${btrfsmount}/${reftag}" "${btrfsmount}/mounted" | while read line; do
 	# TODO - this is obviously insufficient - needs to i.e.
 	# maintain mtime etc.  That will all be fixed when we just
 	# start using the oci or umoci go libraries.
@@ -66,7 +66,7 @@ diff --no-dereference -Nrq "${basedir}/btrfs/${reftag}" "${basedir}/btrfs/mounte
 	set - $line
 	full1="$2"
 	full2="$4"
-	cmp="${basedir}/btrfs/mounted/"
+	cmp="${btrfsmount}/mounted/"
 	len=${#cmp}
 	f2=`echo ${full2} | cut -c ${len}-`
 	dir=`dirname "${f2}"`
@@ -91,5 +91,5 @@ diffshasum=`sha256sum WORKSPACE.tar | awk '{ print $1 }'`
 gzip -n WORKSPACE.tar
 newshasum=`sha256sum WORKSPACE.tar.gz | awk '{ print $1 }'`
 mv WORKSPACE.tar.gz "${layoutdir}/blobs/sha256/${newshasum}"
-mv "${basedir}/btrfs/mounted" "${basedir}/btrfs/${newshasum}"
+mv "${btrfsmount}/mounted" "${btrfsmount}/${newshasum}"
 ./add_oci_tag.py "${layoutdir}" "${reftag}" "${newtag}" "${diffshasum}" "${newshasum}"

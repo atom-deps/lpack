@@ -17,8 +17,8 @@
 . common.sh
 id_check
 
-if [ ! -d "${basedir}/btrfs" ]; then
-	echo "${basedir}/btrfs does not exist; skipping"
+if [ ! -d "${btrfsmount}" ]; then
+	echo "${btrfsmount} does not exist; skipping"
 	exit 0
 fi
 
@@ -36,7 +36,7 @@ remove_whiteouts() {
 
 unpack() {
 	blob="$1/blobs/sha256/$3"
-	dest="$basedir/btrfs/$3"
+	dest="${btrfsmount}/$3"
 	if [ ! -f "${blob}" ]; then
 		echo "Missing blob in OCI image: $3"
 		exit 1
@@ -47,7 +47,7 @@ unpack() {
 	if [ "$2" = "first" ]; then
 		btrfs subvolume create "${dest}" || true
 	else
-		lower="${basedir}/btrfs/$2"
+		lower="${btrfsmount}/$2"
 		btrfs subvolume snapshot "${lower}" "${dest}"
 	fi
 	tar --acls --xattrs -C "${dest}" -xvf "${blob}"
@@ -55,9 +55,9 @@ unpack() {
 }
 
 for l in ${labels}; do
-	layers=`umoci stat --image ${layoutdir}:$l | grep sha256 | cut -c 8-71`
+	layers=`umoci stat --image ${layoutdir}:${l} | grep sha256 | cut -c 8-71`
 	if [ -z "${layers}" ]; then
-		btrfs subvolume create "${basedir}/btrfs/${l}" || true
+		btrfs subvolume create "${btrfsmount}/${l}" || true
 		continue
 	fi
 	prev="first"
