@@ -22,7 +22,7 @@ import json
 import hashlib
 
 if len(sys.argv) != 6:
-    print "Insufficient arguments"
+    print("Insufficient arguments")
     sys.exit(1)
 
 layoutdir = sys.argv[1]
@@ -78,7 +78,7 @@ for m in ocidata["manifests"]:
             break
 
 if oldentry is None:
-    print "old tag (%s) not found" % reftag
+    print("old tag (%s) not found" % reftag)
     sys.exit(1)
 
 # Open the old ref, append our new layer info
