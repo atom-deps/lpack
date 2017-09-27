@@ -48,7 +48,7 @@ def set_new_config_file(manifest_data, diffsum, newsha):
     config_shasum = manifest_data["config"]["digest"][7:]
     config_data = load_manifest_data(config_shasum)
     config_data["rootfs"]["diff_ids"].append("sha256:" + diffsum)
-    if not config_data.has_key("history"):
+    if not "history" in config_data:
         config_data["history"] = []
     config_data["history"].append({
             "created": datetime.now(pytz.timezone("UTC")).isoformat(),
@@ -59,7 +59,7 @@ def set_new_config_file(manifest_data, diffsum, newsha):
     m = hashlib.sha256()
     with open(tmpfnam) as infile:
         blobdata = infile.read()
-        m.update(blobdata)
+        m.update(blobdata.encode('utf-8'))
     config_sha = m.hexdigest()
     newname = blobdir + "/" + config_sha
     os.rename(tmpfnam, newname)
@@ -102,7 +102,7 @@ with open(layoutdir + "/blobs/sha256/XXX", "w") as outfile:
 m = hashlib.sha256()
 with open(layoutdir + "/blobs/sha256/XXX") as filedata:
     blobdata = filedata.read()
-    m.update(blobdata)
+    m.update(blobdata.encode('utf-8'))
 newsha = m.hexdigest()
 
 newentry = {}
