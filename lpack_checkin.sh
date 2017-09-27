@@ -22,6 +22,7 @@
 . $(dirname $0)/common.sh
 id_check
 
+python -c "import pytz" || { echo "python pytz (python-tz) timezone package not found"; exit 1; }
 gen_newtag() {
 	d=`date "+%Y-%m-%d"`
 	echo "using date $d" >> /tmp/debug
