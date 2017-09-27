@@ -38,19 +38,14 @@ if [ -d "${btrfsmount}/mounted" ]; then
 	exit 1
 fi
 
-gettag() {
-	res=`umoci stat --image ${layoutdir}:$1 | tail -1`
-	echo "${res}" | grep -q "^sha256:" || { echo "Bad tag"; exit 1; }
-	echo "${res}" | cut -c 8-71
-}
-
 tag="$(gettag $1)"
 if [ -z "${tag}" ]; then
-	echo "Tag not found"
-	exit 1
+    echo "Tag not found"
+    exit 1
 fi
 
 echo "$1" > "${basedir}/btrfs.mounted_tag"
+echo "${tag}" > "${basedir}/btrfs.mounted_sha"
 
 lower="${btrfsmount}/${tag}"
 dest="${btrfsmount}/mounted"

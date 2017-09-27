@@ -45,3 +45,9 @@ id_check() {
                 exit 1
         fi
 }
+
+gettag() {
+    res=`umoci stat --image ${layoutdir}:$1 | tail -1`
+    echo "${res}" | grep -q "^sha256:" || { echo "Bad tag"; exit 1; }
+    echo "${res}" | cut -c 8-71
+}

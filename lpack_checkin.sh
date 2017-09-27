@@ -51,6 +51,8 @@ if [ ! -d "${btrfsmount}/mounted" ]; then
 fi
 
 reftag="$(cat ${basedir}/btrfs.mounted_tag)"
+refsha="$(cat ${basedir}/btrfs.mounted_sha)"
+
 workspace="${basedir}/WORKSPACE"
 rm -rf "${workspace}"
 mkdir ${workspace}
@@ -60,14 +62,40 @@ cleanup() {
 }
 trap cleanup EXIT
 
-diff --no-dereference -Nrq "${btrfsmount}/${reftag}" "${btrfsmount}/mounted" | while read line; do
+# --no-dereference fails when you have a symlink directory...
+# There has to be a better way, but really we're going to drop this shell
+# code anyway so deal with it for now
+#diff --no-dereference -Nrq "${btrfsmount}/${refsha}" "${btrfsmount}/mounted" | while read line; do
+dir1="${btrfsmount}/${refsha}"
+dir2="${btrfsmount}/mounted"
+dir1len=${#dir1}
+dir2len=${#dir2}
+diff -Nrq "${dir1}" "${dir2}" | while read line; do
 	# TODO - this is obviously insufficient - needs to i.e.
 	# maintain mtime etc.  That will all be fixed when we just
 	# start using the oci or umoci go libraries.
 	echo $line
 	set - $line
-	full1="$2"
-	full2="$4"
+    if [ "$1" = "Only" ]; then
+        echo "only in $3"
+        # Only in /tmp/btrfs/mounted/dev: null
+        l2=${#3}
+        l2=$((l2-1))
+        if [ "${3:0:$dir1len}" = "${dir1}" ]; then
+            full1="$dir1${3:$dir1len:$l2}/$4"
+            full2="$dir2${3:$dir1len:$l2}/$4"
+        elif [ "${3:0:dir2len}" = "${dir2}" ]; then
+            full1="$dir1${3:$dir2len:$l2}/$4"
+            full2="$dir2${3:$dir2len:$l2}/$4"
+        else
+            echo "Error: couldn't figure out the diff meaning of: $line"
+            exit 1
+        fi
+    else
+        full1="$2"
+        full2="$4"
+    fi
+    echo "Comparing $full1 to $full2"
 	cmp="${btrfsmount}/mounted/"
 	len=${#cmp}
 	f2=`echo ${full2} | cut -c ${len}-`
@@ -78,6 +106,7 @@ diff --no-dereference -Nrq "${btrfsmount}/${reftag}" "${btrfsmount}/mounted" | w
 	fi
 	if [ ! -e "${full2}" -a ! -h "${full2}" ]; then
 		# whiteout
+        echo "full2 is $full2, f2 is $f2, fnam2 is $fnam2"
 		mknod "${workspace}/${dir}/.wh_${fnam2}" c 0 0
 	else
 		if [ -d "${full1}" ]; then
@@ -94,4 +123,4 @@ gzip -n WORKSPACE.tar
 newshasum=`sha256sum WORKSPACE.tar.gz | awk '{ print $1 }'`
 mv WORKSPACE.tar.gz "${layoutdir}/blobs/sha256/${newshasum}"
 mv "${btrfsmount}/mounted" "${btrfsmount}/${newshasum}"
-./add_oci_tag.py "${layoutdir}" "${reftag}" "${newtag}" "${diffshasum}" "${newshasum}"
+$(dirname $0)/add_oci_tag.py "${layoutdir}" "${reftag}" "${newtag}" "${diffshasum}" "${newshasum}"

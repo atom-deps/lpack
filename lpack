@@ -4,7 +4,7 @@
 #
 # Note - to use this you must
 #   mkdir /usr/share/lpack
-#   cp *.sh usr/share/lpack
+#   cp *.sh *.py usr/share/lpack
 # and then probably
 #   cp lpack /usr/bin
 # This is clearly a very short-term hack until we switch to a single lpack go binary
