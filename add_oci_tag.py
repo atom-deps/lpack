@@ -15,6 +15,7 @@
 # limitations under the License.
 
 from datetime import datetime
+import pytz
 import os
 import sys
 import json
@@ -47,8 +48,10 @@ def set_new_config_file(manifest_data, diffsum, newsha):
     config_shasum = manifest_data["config"]["digest"][7:]
     config_data = load_manifest_data(config_shasum)
     config_data["rootfs"]["diff_ids"].append("sha256:" + diffsum)
+    if not config_data.has_key("history"):
+        config_data["history"] = []
     config_data["history"].append({
-            #"created": datetime.now().isoformat(),
+            "created": datetime.now(pytz.timezone("UTC")).isoformat(),
             "created_by": "lpack" })
     tmpfnam = blobdir + "YYY" # TODO use tmpnam
     with open(tmpfnam, "w") as outfile:
@@ -75,7 +78,7 @@ for m in ocidata["manifests"]:
             break
 
 if oldentry is None:
-    print "reftag not found"
+    print "old tag (%s) not found" % reftag
     sys.exit(1)
 
 # Open the old ref, append our new layer info
