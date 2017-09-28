@@ -42,6 +42,8 @@ case "$1" in
     "checkin"|"ci") /usr/share/lpack/lpack_checkin.sh ${@:2};;
     "checkout"|"co") /usr/share/lpack/lpack_checkout.sh ${@:2};;
     "unpack") /usr/share/lpack/lpack_unpack.sh ${@:2};;
+    "ls") /usr/share/lpack/lpack_ls.sh ;;
+    "abort") /usr/share/lpack/lpack_abort.sh ;;
     "setup") /usr/share/lpack/setup_btrfs.sh;;
     "unsetup") /usr/share/lpack/unsetup_btrfs.sh;;
 esac
