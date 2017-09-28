@@ -17,23 +17,10 @@
 # set -x
 
 . $(dirname $0)/common.sh
-id_check
 
 if [ ! -d "${btrfsmount}/mounted" ]; then
-	echo "There is no checkout to abort"
+	echo "Noting is checked out"
 	exit 0
 fi
 
-if [ "$1" = "-f" ]; then
-	proceed="y"
-else
-	read -p "This will remove any changes in your checkout under ${btrfsmount}/mounted - are you sure (y/n)" proceed
-fi
-
-if [ "${proceed}" = "y" ]; then
-	echo "Deleting ${btrfsmount}/mounted"
-	btrfs subvolume delete "${btrfsmount}/mounted"
-else
-	echo "Doing nothing"
-fi
-
+echo "$(cat ${basedir}/btrfs.mounted_tag) is checked out"
