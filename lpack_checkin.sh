@@ -25,16 +25,12 @@ id_check
 python -c "import pytz" || { echo "python pytz (python-tz) timezone package not found"; exit 1; }
 gen_newtag() {
 	d=`date "+%Y-%m-%d"`
-	echo "using date $d" >> /tmp/debug
 	tags=`umoci ls --layout "${layoutdir}" | grep "$d" | sort | tail -1`
 	if [ -z "${tags}" ]; then
-		echo "tags was zero" >> /tmp/debug
 		echo "${d}_v1"
 		return
 	fi
-	echo "tags was ${tags}" >> /tmp/debug
 	v=`echo "${tags}" | sed -e 's/^.*v//'`
-	echo "v was ${v}" >> /tmp/debug
 	v=$((v+1))
 	echo "${d}_v${v}"
 	return
@@ -119,9 +115,9 @@ diff -Nrq "${dir1}" "${dir2}" | while read line; do
 done
 
 (cd "${workspace}"; tar --acls --xattrs -cf ../WORKSPACE.tar .)
-diffshasum=`sha256sum WORKSPACE.tar | awk '{ print $1 }'`
-gzip -n WORKSPACE.tar
-newshasum=`sha256sum WORKSPACE.tar.gz | awk '{ print $1 }'`
-mv WORKSPACE.tar.gz "${layoutdir}/blobs/sha256/${newshasum}"
+diffshasum=`sha256sum ${basedir}/WORKSPACE.tar | awk '{ print $1 }'`
+gzip -n ${basedir}/WORKSPACE.tar
+newshasum=`sha256sum ${basedir}/WORKSPACE.tar.gz | awk '{ print $1 }'`
+mv ${basedir}/WORKSPACE.tar.gz "${layoutdir}/blobs/sha256/${newshasum}"
 mv "${btrfsmount}/mounted" "${btrfsmount}/${newshasum}"
 $(dirname $0)/add_oci_tag.py "${layoutdir}" "${reftag}" "${newtag}" "${diffshasum}" "${newshasum}"
