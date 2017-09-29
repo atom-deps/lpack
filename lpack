@@ -32,6 +32,7 @@ usage() {
     echo "    lpack ls - show current OCI tags"
     echo "    lpack abort - abort a checkout"
     echo "    lpack chroot - run a shell or command inside a chroot in the checkout"
+    echo "    lpack pull - pull an image using skopeo"
     echo "    lpack status - show which tag if any is checked out"
     echo "    lpack setup - setup btrfs filesystem to unpack into"
     echo "    lpack unsetup - unsetup btrfs.  Make sure to checkin changes before doing this."
@@ -50,6 +51,7 @@ case "$1" in
     "chroot") /usr/share/lpack/lpack_chroot.sh ${@:2} ;;
     "status") /usr/share/lpack/lpack_status.sh ${@:2} ;;
     "abort") /usr/share/lpack/lpack_abort.sh ${@:2};;
+    "pull") /usr/share/lpack/lpack_pull.py ${@:2};;
     "setup") /usr/share/lpack/setup_btrfs.sh;;
     "unsetup") /usr/share/lpack/unsetup_btrfs.sh;;
     *) usage;;

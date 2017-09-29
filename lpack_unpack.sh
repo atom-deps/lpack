@@ -64,7 +64,9 @@ for l in ${labels}; do
 	fi
 	prev="first"
 	for layer in ${layers}; do
-		unpack "${layoutdir}" "${prev}" "${layer}"
-		prev="${layer}"
+		if [ "${layer:0:7}" = "sha256:" ]; then
+			unpack "${layoutdir}" "${prev}" "${layer}"
+			prev="${layer}"
+		fi
 	done
 done
