@@ -74,14 +74,15 @@ diff -Nrq "${dir1}" "${dir2}" | while read line; do
 	echo $line
 	set - $line
     if [ "$1" = "Only" ]; then
-        echo "only in $3"
         # Only in /tmp/btrfs/mounted/dev: null
         l2=${#3}
-        l2=$((l2-1))
+        l2=$((l2-1))   # drop the trailing :
         if [ "${3:0:$dir1len}" = "${dir1}" ]; then
+            l2=$((l2 - dir1len))
             full1="$dir1${3:$dir1len:$l2}/$4"
             full2="$dir2${3:$dir1len:$l2}/$4"
         elif [ "${3:0:dir2len}" = "${dir2}" ]; then
+            l2=$((l2 - dir2len))
             full1="$dir1${3:$dir2len:$l2}/$4"
             full2="$dir2${3:$dir2len:$l2}/$4"
         else
