@@ -103,8 +103,7 @@ diff -Nrq "${dir1}" "${dir2}" | while read line; do
 	fi
 	if [ ! -e "${full2}" -a ! -h "${full2}" ]; then
 		# whiteout
-        echo "full2 is $full2, f2 is $f2, fnam2 is $fnam2"
-		mknod "${workspace}/${dir}/.wh_${fnam2}" c 0 0
+		mknod "${workspace}/${dir}/.wh.${fnam2}" c 0 0
 	else
 		if [ -d "${full1}" ]; then
 			mkdir "${workspace}/${f2}"
