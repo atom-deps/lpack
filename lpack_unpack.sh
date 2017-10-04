@@ -57,7 +57,7 @@ unpack() {
 }
 
 for l in ${labels}; do
-	layers=`umoci stat --image ${layoutdir}:${l} | grep sha256 | cut -c 8-71`
+	layers=`umoci stat --image ${layoutdir}:${l} | grep sha256`
 	if [ -z "${layers}" ]; then
 		btrfs subvolume create "${btrfsmount}/${l}" || true
 		continue
@@ -65,8 +65,8 @@ for l in ${labels}; do
 	prev="first"
 	for layer in ${layers}; do
 		if [ "${layer:0:7}" = "sha256:" ]; then
-			unpack "${layoutdir}" "${prev}" "${layer}"
-			prev="${layer}"
+			unpack "${layoutdir}" "${prev}" "${layer:7}"
+			prev="${layer:7}"
 		fi
 	done
 done
