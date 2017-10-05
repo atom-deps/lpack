@@ -24,7 +24,7 @@ import sys
 #  localtag, then do a fresh lpack unpack to unpack the new layer
 
 if len(sys.argv) != 3:
-    print "Usage: lpack_pull.py docker://dockerurl/image localtag"
+    print("Usage: lpack_pull.py docker://dockerurl/image localtag")
     sys.exit(1)
 
 def in_manifests(m, d):
@@ -32,7 +32,7 @@ def in_manifests(m, d):
     for t in manifests:
         tname = t['annotations']['org.opencontainers.image.ref.name']
         if tname == dname:
-            print "found redundant manifest"
+            print("found redundant manifest")
             return True
     return False
 
