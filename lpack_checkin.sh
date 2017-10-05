@@ -89,6 +89,11 @@ diff -Nrq "${dir1}" "${dir2}" | while read line; do
             echo "Error: couldn't figure out the diff meaning of: $line"
             exit 1
         fi
+    elif [ "$1" = "File" ]; then
+        # Example:
+        # File /var/lib/atom/btrfs/975a316af08091b77ff5c213fabb953a8afa53ba7893a303602e05fb9dc18f0c/fifo1 is a fifo while file /var/lib/atom/btrfs/mounted/fifo1 is a character special file
+        full1="$2"
+        full2="$8"
     else
         full1="$2"
         full2="$4"
