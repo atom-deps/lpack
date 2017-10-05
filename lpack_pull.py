@@ -29,10 +29,9 @@ if len(sys.argv) != 3:
 
 def in_manifests(m, d):
     dname = d['annotations']['org.opencontainers.image.ref.name']
-    for t in manifests:
+    for t in m:
         tname = t['annotations']['org.opencontainers.image.ref.name']
         if tname == dname:
-            print("found redundant manifest")
             return True
     return False
 
@@ -45,9 +44,7 @@ def parse_config_file(filename):
     configs = {}
     retvalues = {}
     with open(filename, "r") as outfile:
-        print("loading yaml file: %s" % filename)
         configs = yaml.load(outfile)
-        print(configs)
     if "btrfsmount" in configs:
         x = configs["btrfsmount"]
         retvalues["btrfsmount"] = x
@@ -88,18 +85,16 @@ except:
 cmd = "skopeo copy " + sys.argv[1] + " oci:" + layoutdir + ":" + sys.argv[2]
 assert(0 == os.system(cmd))
 
+new_manifests = []
 with open(jsonfile) as data_file:
-	data = json.load(data_file)
-	for d in data["manifests"]:
-		if in_manifests(manifests, d) == False:
-			manifests.append(d)
+	newdata = json.load(data_file)
+        for d in manifests:
+            if not in_manifests(newdata["manifests"], d):
+                new_manifests.append(d)
+        for d in newdata["manifests"]:
+                new_manifests.append(d)
 
-with open(jsonfile) as data_file:
-    data = json.load(data_file)
-    data["manifests"] = []
-    for m in manifests:
-        data["manifests"].append(m)
-
+data["manifests"] = new_manifests
 with open(jsonfile, 'w') as outfile:
         json.dump(data, outfile)
 
