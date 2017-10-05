@@ -24,27 +24,27 @@ id_check
 
 python -c "import pytz" || { echo "python pytz (python-tz) timezone package not found"; exit 1; }
 gen_newtag() {
-	d=`date "+%Y-%m-%d"`
-	tags=`umoci ls --layout "${layoutdir}" | grep "$d" | sort | tail -1`
-	if [ -z "${tags}" ]; then
-		echo "${d}_v1"
-		return
-	fi
-	v=`echo "${tags}" | sed -e 's/^.*v//'`
-	v=$((v+1))
-	echo "${d}_v${v}"
-	return
+    d=`date "+%Y-%m-%d"`
+    tags=`umoci ls --layout "${layoutdir}" | grep "$d" | sort | tail -1`
+    if [ -z "${tags}" ]; then
+        echo "${d}_v1"
+        return
+    fi
+    v=`echo "${tags}" | sed -e 's/^.*v//'`
+    v=$((v+1))
+    echo "${d}_v${v}"
+    return
 }
 
 if [ $# = 1 ]; then
-	newtag=$1
+    newtag=$1
 else
-	newtag=$(gen_newtag)
+    newtag=$(gen_newtag)
 fi
 
 if [ ! -d "${btrfsmount}/mounted" ]; then
-	echo "No tags are checked out"
-	exit 1
+    echo "No tags are checked out"
+    exit 1
 fi
 
 reftag="$(cat ${basedir}/btrfs.mounted_tag)"
@@ -55,7 +55,7 @@ rm -rf "${workspace}"
 mkdir ${workspace}
 
 cleanup() {
-	rm -rf "${workspace}"
+    rm -rf "${workspace}"
 }
 trap cleanup EXIT
 
@@ -68,11 +68,11 @@ dir2="${btrfsmount}/mounted"
 dir1len=${#dir1}
 dir2len=${#dir2}
 diff -Nrq "${dir1}" "${dir2}" | while read line; do
-	# TODO - this is obviously insufficient - needs to i.e.
-	# maintain mtime etc.  That will all be fixed when we just
-	# start using the oci or umoci go libraries.
-	echo $line
-	set - $line
+    # TODO - this is obviously insufficient - needs to i.e.
+    # maintain mtime etc.  That will all be fixed when we just
+    # start using the oci or umoci go libraries.
+    echo $line
+    set - $line
     if [ "$1" = "Only" ]; then
         # Only in /tmp/btrfs/mounted/dev: null
         l2=${#3}
@@ -94,24 +94,24 @@ diff -Nrq "${dir1}" "${dir2}" | while read line; do
         full2="$4"
     fi
     echo "Comparing $full1 to $full2"
-	cmp="${btrfsmount}/mounted/"
-	len=${#cmp}
-	f2=`echo ${full2} | cut -c ${len}-`
-	dir=`dirname "${f2}"`
-	fnam2=`basename "${f2}"`
-	if [ ! -z "$(dir)" ]; then
-		mkdir -p "${workspace}/${dir}"
-	fi
-	if [ ! -e "${full2}" -a ! -h "${full2}" ]; then
-		# whiteout
-		mknod "${workspace}/${dir}/.wh.${fnam2}" c 0 0
-	else
-		if [ -d "${full1}" ]; then
-			mkdir "${workspace}/${f2}"
-		else
-			cp -a "${full2}" "${workspace}/${f2}"
-		fi
-	fi
+    cmp="${btrfsmount}/mounted/"
+    len=${#cmp}
+    f2=`echo ${full2} | cut -c ${len}-`
+    dir=`dirname "${f2}"`
+    fnam2=`basename "${f2}"`
+    if [ ! -z "$(dir)" ]; then
+        mkdir -p "${workspace}/${dir}"
+    fi
+    if [ ! -e "${full2}" -a ! -h "${full2}" ]; then
+        # whiteout
+        mknod "${workspace}/${dir}/.wh.${fnam2}" c 0 0
+    else
+        if [ -d "${full1}" ]; then
+            mkdir "${workspace}/${f2}"
+        else
+            cp -a "${full2}" "${workspace}/${f2}"
+        fi
+    fi
 done
 
 (cd "${workspace}"; tar --acls --xattrs -cf ../WORKSPACE.tar .)
