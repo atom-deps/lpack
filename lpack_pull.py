@@ -87,16 +87,16 @@ assert(0 == os.system(cmd))
 
 new_manifests = []
 with open(jsonfile) as data_file:
-	newdata = json.load(data_file)
-        for d in manifests:
-            if not in_manifests(newdata["manifests"], d):
-                new_manifests.append(d)
-        for d in newdata["manifests"]:
-                new_manifests.append(d)
+    newdata = json.load(data_file)
+    for d in manifests:
+        if not in_manifests(newdata["manifests"], d):
+            new_manifests.append(d)
+    for d in newdata["manifests"]:
+        new_manifests.append(d)
 
 data["manifests"] = new_manifests
 with open(jsonfile, 'w') as outfile:
-        json.dump(data, outfile)
+    json.dump(data, outfile)
 
 # unpack so we can use the new image
 cmd = "lpack unpack"
