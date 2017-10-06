@@ -94,9 +94,9 @@ with open(jsonfile) as data_file:
     for d in newdata["manifests"]:
         new_manifests.append(d)
 
-data["manifests"] = new_manifests
+newdata["manifests"] = new_manifests
 with open(jsonfile, 'w') as outfile:
-    json.dump(data, outfile)
+    json.dump(newdata, outfile)
 
 # unpack so we can use the new image
 cmd = "lpack unpack"
