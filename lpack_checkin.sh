@@ -71,7 +71,7 @@ diff -Nrq "${dir1}" "${dir2}" | while read line; do
     # TODO - this is obviously insufficient - needs to i.e.
     # maintain mtime etc.  That will all be fixed when we just
     # start using the oci or umoci go libraries.
-    echo $line
+    # echo $line
     set - $line
     if [ "$1" = "Only" ]; then
         # Only in /tmp/btrfs/mounted/dev: null
@@ -98,7 +98,7 @@ diff -Nrq "${dir1}" "${dir2}" | while read line; do
         full1="$2"
         full2="$4"
     fi
-    echo "Comparing $full1 to $full2"
+    # echo "Comparing $full1 to $full2"
     cmp="${btrfsmount}/mounted/"
     len=${#cmp}
     f2=`echo ${full2} | cut -c ${len}-`
@@ -114,7 +114,7 @@ diff -Nrq "${dir1}" "${dir2}" | while read line; do
         if [ -d "${full1}" ]; then
             mkdir "${workspace}/${f2}"
         else
-            cp -a "${full2}" "${workspace}/${f2}"
+            cp -a "${full2}" "${workspace}/${f2}" || { echo "Failure copying ${workspace}/${f2}"; true; }
         fi
     fi
 done
