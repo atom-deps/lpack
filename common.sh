@@ -15,7 +15,7 @@ parse_config() {
     x="$(mktemp)"
     sed -e 's/:[ \t]*/="/;s/$/"/' "$1" > "${x}"
     . "${x}"
-    rm "${x}"
+    rm -- "${x}"
 }
 
 # Parse config

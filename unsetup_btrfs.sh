@@ -29,5 +29,5 @@ if mountpoint -q "${btrfsmount}"; then
 fi
 
 if [ -f "${lofile}" ]; then
-	rm "${lofile}"
+	rm -- "${lofile}"
 fi

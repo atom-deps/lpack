@@ -31,8 +31,8 @@ remove_whiteouts() {
 		fname="$(basename $line)"
 		dname="$(dirname $line)"
 		delname=$(echo ${fname} | sed -e 's/.wh.//')
-		rm "${dname}/${delname}"
-		rm "${line}"
+		rm -- "${dname}/${delname}"
+		rm -- "${line}"
 	done
 }
 

@@ -51,11 +51,11 @@ reftag="$(cat ${basedir}/btrfs.mounted_tag)"
 refsha="$(cat ${basedir}/btrfs.mounted_sha)"
 
 workspace="${basedir}/WORKSPACE"
-rm -rf "${workspace}"
+rm -rf -- "${workspace}"
 mkdir ${workspace}
 
 cleanup() {
-    rm -rf "${workspace}"
+    rm -rf -- "${workspace}"
 }
 trap cleanup EXIT
 
