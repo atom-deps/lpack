@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash -exu
 # lpack_unpack.sh: unpack and OCI image into overlayfs layers.
 # Copyright (C) 2017 Cisco Inc
 #
@@ -19,8 +19,8 @@
 . $(dirname $0)/common.sh
 id_check
 
-if [ ! -d "${btrfsmount}" ]; then
-	echo "${btrfsmount} does not exist; skipping"
+if [ "${driver}" = "vfs" ]; then
+	echo "No CoW fs driver registered; skipping"
 	exit 0
 fi
 
@@ -38,28 +38,64 @@ remove_whiteouts() {
 
 unpack() {
 	blob="$1/blobs/sha256/$3"
-	dest="${btrfsmount}/$3"
+	if [ "$driver" = "btrfs" ] ;then
+		dest="${btrfsmount}/$3"
+	else
+		dest="${lvbasedir}/$3"
+	fi
 	if [ ! -f "${blob}" ]; then
 		echo "Missing blob in OCI image: $3"
 		exit 1
 	fi
 	if [ -d "${dest}" ]; then
+		echo "${dest} already exists"
 		return
 	fi
 	if [ "$2" = "first" ]; then
-		btrfs subvolume create "${dest}" || true
+		if [ "$driver" = "btrfs" ]; then
+			btrfs subvolume create "${dest}" || true
+		else
+			if mountpoint -q "${dest}"; then
+				return
+			fi
+			lvcreate -n "$3" -V 10G --thinpool ThinDataLV "${vg}"
+			mkfs.ext4 "/dev/${vg}/$3"
+			mkdir -p "${dest}"
+			mount -t ext4 "/dev/${vg}/$3" "${dest}"
+		fi
 	else
-		lower="${btrfsmount}/$2"
-		btrfs subvolume snapshot "${lower}" "${dest}"
+		if [ "$driver" = "btrfs" ]; then
+			lower="${btrfsmount}/$2"
+			btrfs subvolume snapshot "${lower}" "${dest}"
+		else
+			if mountpoint -q "${dest}"; then
+				return
+			fi
+			lvcreate -n "$3" --snapshot "${vg}/$2"
+			lvchange -ay -K "${vg}/$3"
+			mkdir -p "${dest}"
+			mount -t ext4 "/dev/${vg}/$3" "${dest}"
+			# TODO - we have to persist these mounts across reboots
+		fi
 	fi
 	tar --acls --xattrs -C "${dest}" -xvf "${blob}"
 	remove_whiteouts "${dest}"
 }
 
 for l in ${labels}; do
-	layers=`umoci stat --image ${layoutdir}:${l} | grep sha256`
+	layers=`umoci stat --image ${layoutdir}:${l} | grep sha256` || true
 	if [ -z "${layers}" ]; then
-		btrfs subvolume create "${btrfsmount}/${l}" || true
+		if [ "$driver" = "btrfs" ]; then
+			btrfs subvolume create "${btrfsmount}/${l}" || true
+		else
+			if mountpoint -q "${lvbasedir}/$l"; then
+				continue
+			fi
+			lvcreate -n "$l" -V 10G --thinpool ThinDataLV "${vg}"
+			mkfs.ext4 "/dev/${vg}/$l"
+			mkdir -p "${lvbasedir}/$l"
+			mount -t ext4 "/dev/${vg}/$l" "${lvbasedir}/$l"
+		fi
 		continue
 	fi
 	prev="first"

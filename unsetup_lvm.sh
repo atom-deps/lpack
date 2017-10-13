@@ -22,7 +22,7 @@
 
 id_check
 
-for d in "${lvbasedir}/*"; do
+for d in ${lvbasedir}/*; do
 	umount -l "$d" || true
 done
 

@@ -17,6 +17,7 @@ lvbasedir="${basedir}/lvm"
 # I don't want to keep state, so you can specify the loopback dev
 # to use for lvm here, but it must be free for our use.
 lvdev="loop0"
+driver="vfs"
 
 parse_config() {
     x="$(mktemp)"
@@ -44,6 +45,12 @@ fi
 if [ ! -d "${basedir}" ]; then
 	echo "basedir does not exist: ${basedir}"
 	exit 1
+fi
+
+if [ -d "${btrfsmount}" ]; then
+	driver="btrfs"
+elif vgs "${vg}" > /dev/null 2>&1; then
+	driver="lvm"
 fi
 
 id_check() {
