@@ -10,6 +10,13 @@ layoutdir="${basedir}/oci"
 lofile="${basedir}/btrfs.img"
 # btrfsmount is where the btrfs filesystem is mounted.
 btrfsmount="${basedir}/btrfs"
+# vg is the LVM vg to use
+vg="stacker"
+# lvbasedir is the directory under which LVM LVs will be mounted
+lvbasedir="${basedir}/lvm"
+# I don't want to keep state, so you can specify the loopback dev
+# to use for lvm here, but it must be free for our use.
+lvdev="loop0"
 
 parse_config() {
     x="$(mktemp)"
