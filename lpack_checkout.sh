@@ -27,15 +27,20 @@ if [ $# = 0 ]; then
 	exit 1
 fi
 
-if [ ! -d "${btrfsmount}" ]; then
-	echo "${btrfsmount} does not exist: did you forget to 'lpack unpack'?"
-	exit 1
+if [ "$driver" != "btrfs" -a "$driver" != "lvm" ]; then
+	exit 0
 fi
 
-if [ -d "${btrfsmount}/mounted" ]; then
-	echo "\"$(cat ${basedir}/btrfs.mounted_tag)\" is already checked out"
-	echo "Please check it in first."
-	exit 1
+if [ "${driver}" = "btrfs" ]; then
+	if [ ! -d "${btrfsmount}" ]; then
+		echo "${btrfsmount} does not exist: did you forget to 'lpack unpack'?"
+		exit 1
+	fi
+	if [ -d "${btrfsmount}/mounted" ]; then
+		echo "\"$(cat ${basedir}/btrfs.mounted_tag)\" is already checked out"
+		echo "Please check it in first."
+		exit 1
+	fi
 fi
 
 tag="$(gettag $1)"
@@ -47,7 +52,16 @@ fi
 echo "$1" > "${basedir}/btrfs.mounted_tag"
 echo "${tag}" > "${basedir}/btrfs.mounted_sha"
 
-lower="${btrfsmount}/${tag}"
-dest="${btrfsmount}/mounted"
-btrfs subvolume snapshot "${lower}" "${dest}"
-echo "$1 is checked out and mounted under ${btrfsmount}/mounted"
+if [ "${driver}" = "btrfs" ]; then
+	lower="${btrfsmount}/${tag}"
+	dest="${btrfsmount}/mounted"
+	btrfs subvolume snapshot "${lower}" "${dest}"
+	echo "$1 is checked out and mounted under ${btrfsmount}/mounted"
+else
+	dest="${lvbasedir}/mounted"
+	lower="${vg}/${tag}"
+	lvcreate -n "mounted" --snapshot "${lower}"
+	lvchange -ay -K "${lower}"
+	mkdir -p "${dest}"
+	mount -t ext4 "/dev/${lower}" "${dest}"
+fi

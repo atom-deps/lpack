@@ -19,7 +19,16 @@
 . $(dirname $0)/common.sh
 id_check
 
-if [ ! -d "${btrfsmount}/mounted" ]; then
+if [ "$driver" != "btrfs" -a "$driver" != "lvm" ]; then
+	exit 0
+fi
+
+if [ "$driver" = "btrfs" -a ! -d "${btrfsmount}/mounted" ]; then
+	echo "There is no checkout to abort"
+	exit 0
+fi
+
+if [ "$driver" = "lvm" -a ! mountpoint "${lvbasedir}/mounted" ]; then
 	echo "There is no checkout to abort"
 	exit 0
 fi
@@ -27,12 +36,18 @@ fi
 if [ "$1" = "-f" ]; then
 	proceed="y"
 else
-	read -p "This will remove any changes in your checkout under ${btrfsmount}/mounted - are you sure (y/n)" proceed
+	read -p "This will remove any changes in your checkout - are you sure (y/n)" proceed
 fi
 
 if [ "${proceed}" = "y" ]; then
-	echo "Deleting ${btrfsmount}/mounted"
-	btrfs subvolume delete "${btrfsmount}/mounted"
+	if [ "$driver" = "btrfs" ]; then
+		btrfs subvolume delete "${btrfsmount}/mounted"
+	else
+		umount -l "${lvbasedir}/mounted"
+		sync
+		rmdir "${lvbasedir}/mounted"
+		lvremove -f "${vg}/mounted"
+	fi
 else
 	echo "Doing nothing"
 fi
