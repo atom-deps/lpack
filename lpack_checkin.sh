@@ -42,13 +42,27 @@ else
     newtag=$(gen_newtag)
 fi
 
-if [ ! -d "${btrfsmount}/mounted" ]; then
-    echo "No tags are checked out"
-    exit 1
+if [ "${driver}" = "btrfs" ]; then
+	if [ ! -d "${btrfsmount}/mounted" ]; then
+	    echo "No tags are checked out"
+	    exit 1
+	fi
+	reftag="$(cat ${basedir}/btrfs.mounted_tag)"
+	refsha="$(cat ${basedir}/btrfs.mounted_sha)"
+	dir1="${btrfsmount}/${refsha}"
+	dir2="${btrfsmount}/mounted"
+	mountdir="${btrfsmount}"
+else
+	if ! mountpoint -q "${lvbasedir}/mounted"; then
+	    echo "No tags are checked out"
+	    exit 1
+	fi
+	reftag="$(cat ${basedir}/lvm.mounted_tag)"
+	refsha="$(cat ${basedir}/lvm.mounted_sha)"
+	dir1="${lvbasedir}/${refsha}"
+	dir2="${lvbasedir}/mounted"
+	mountdir="${lvbasedir}"
 fi
-
-reftag="$(cat ${basedir}/btrfs.mounted_tag)"
-refsha="$(cat ${basedir}/btrfs.mounted_sha)"
 
 workspace="${basedir}/WORKSPACE"
 rm -rf -- "${workspace}"
@@ -63,8 +77,6 @@ trap cleanup EXIT
 # There has to be a better way, but really we're going to drop this shell
 # code anyway so deal with it for now
 #diff --no-dereference -Nrq "${btrfsmount}/${refsha}" "${btrfsmount}/mounted" | while read line; do
-dir1="${btrfsmount}/${refsha}"
-dir2="${btrfsmount}/mounted"
 dir1len=${#dir1}
 dir2len=${#dir2}
 diff -Nrq "${dir1}" "${dir2}" | while read line; do
@@ -99,7 +111,7 @@ diff -Nrq "${dir1}" "${dir2}" | while read line; do
         full2="$4"
     fi
     # echo "Comparing $full1 to $full2"
-    cmp="${btrfsmount}/mounted/"
+    cmp="${mountdir}/mounted/"
     len=${#cmp}
     f2=`echo ${full2} | cut -c ${len}-`
     dir=`dirname "${f2}"`
@@ -124,5 +136,5 @@ diffshasum=`sha256sum ${basedir}/WORKSPACE.tar | awk '{ print $1 }'`
 gzip -n ${basedir}/WORKSPACE.tar
 newshasum=`sha256sum ${basedir}/WORKSPACE.tar.gz | awk '{ print $1 }'`
 mv ${basedir}/WORKSPACE.tar.gz "${layoutdir}/blobs/sha256/${newshasum}"
-mv "${btrfsmount}/mounted" "${btrfsmount}/${newshasum}"
+mv "${mountdir}/mounted" "${mountdir}/${newshasum}"
 $(dirname $0)/add_oci_tag.py "${layoutdir}" "${reftag}" "${newtag}" "${diffshasum}" "${newshasum}"

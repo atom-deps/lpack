@@ -33,6 +33,5 @@ else
 		echo "Noting is checked out"
 		exit 0
 	fi
-	echo "$(cat ${basedir}/lvm.mounted_tag} is checked out"
+	echo "$(cat ${basedir}/lvm.mounted_tag) is checked out"
 fi
-
