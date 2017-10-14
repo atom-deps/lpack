@@ -18,9 +18,21 @@
 
 . $(dirname $0)/common.sh
 
-if [ ! -d "${btrfsmount}/mounted" ]; then
-	echo "Noting is checked out"
+if [ "$driver" != "btrfs" -a "$driver" != "lvm" ]; then
 	exit 0
 fi
 
-echo "$(cat ${basedir}/btrfs.mounted_tag) is checked out"
+if [ "$driver" = "btrfs" ]; then
+	if [ ! -d "${btrfsmount}/mounted" ]; then
+		echo "Noting is checked out"
+		exit 0
+	fi
+	echo "$(cat ${basedir}/btrfs.mounted_tag) is checked out"
+else
+	if ! mountpoint "${lvbasedir}/mounted" > /dev/null 2>&1; then
+		echo "Noting is checked out"
+		exit 0
+	fi
+	echo "$(cat ${basedir}/lvm.mounted_tag} is checked out"
+fi
+

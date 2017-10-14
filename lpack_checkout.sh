@@ -41,6 +41,12 @@ if [ "${driver}" = "btrfs" ]; then
 		echo "Please check it in first."
 		exit 1
 	fi
+else
+	if mountpoint "${lvbasedir}/mounted" > /dev/null 2>&1; then
+		echo "\"$(cat ${basedir}/lvm.mounted_tag)\" is already checked out"
+		echo "Please check it in first."
+		exit 1
+	fi
 fi
 
 tag="$(gettag $1)"
@@ -49,15 +55,16 @@ if [ -z "${tag}" ]; then
     exit 1
 fi
 
-echo "$1" > "${basedir}/btrfs.mounted_tag"
-echo "${tag}" > "${basedir}/btrfs.mounted_sha"
-
 if [ "${driver}" = "btrfs" ]; then
+	echo "$1" > "${basedir}/btrfs.mounted_tag"
+	echo "${tag}" > "${basedir}/btrfs.mounted_sha"
 	lower="${btrfsmount}/${tag}"
 	dest="${btrfsmount}/mounted"
 	btrfs subvolume snapshot "${lower}" "${dest}"
 	echo "$1 is checked out and mounted under ${btrfsmount}/mounted"
 else
+	echo "$1" > "${basedir}/lvm.mounted_tag"
+	echo "${tag}" > "${basedir}/lvm.mounted_sha"
 	dest="${lvbasedir}/mounted"
 	lower="${vg}/${tag}"
 	lvcreate -n "mounted" --snapshot "${lower}"

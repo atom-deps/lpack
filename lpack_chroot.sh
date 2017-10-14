@@ -19,9 +19,22 @@
 . $(dirname $0)/common.sh
 id_check
 
-if [ ! -d "${btrfsmount}/mounted" ]; then
-	echo "Nothing is checked out"
+if [ "$driver" != "btrfs" -a "$driver" != "lvm" ]; then
 	exit 0
 fi
 
-chroot "${btrfsmount}/mounted" $*
+if [ "$driver" = "btrfs" ]; then
+	if [ ! -d "${btrfsmount}/mounted" ]; then
+		echo "Nothing is checked out"
+		exit 0
+	fi
+
+	chroot "${btrfsmount}/mounted" $*
+else
+	if ! mountpoint "${lvbasedir}/mounted" > /dev/null 2>&1; then
+		echo "Nothing is checked out"
+		exit 0
+	fi
+
+	chroot "${lvbasedir}/mounted" $*
+fi

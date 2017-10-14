@@ -55,7 +55,7 @@ unpack() {
 		if [ "$driver" = "btrfs" ]; then
 			btrfs subvolume create "${dest}" || true
 		else
-			if mountpoint -q "${dest}"; then
+			if mountpoint -q "${dest}" > /dev/null 2>&1; then
 				return
 			fi
 			lvcreate -n "$3" -V 10G --thinpool ThinDataLV "${vg}"
@@ -68,7 +68,7 @@ unpack() {
 			lower="${btrfsmount}/$2"
 			btrfs subvolume snapshot "${lower}" "${dest}"
 		else
-			if mountpoint -q "${dest}"; then
+			if mountpoint -q "${dest}" > /dev/null 2>&1; then
 				return
 			fi
 			lvcreate -n "$3" --snapshot "${vg}/$2"
@@ -88,7 +88,7 @@ for l in ${labels}; do
 		if [ "$driver" = "btrfs" ]; then
 			btrfs subvolume create "${btrfsmount}/${l}" || true
 		else
-			if mountpoint -q "${lvbasedir}/$l"; then
+			if mountpoint -q "${lvbasedir}/$l" > /dev/null 2>&1; then
 				continue
 			fi
 			lvcreate -n "$l" -V 10G --thinpool ThinDataLV "${vg}"

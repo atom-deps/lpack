@@ -28,9 +28,11 @@ if [ "$driver" = "btrfs" -a ! -d "${btrfsmount}/mounted" ]; then
 	exit 0
 fi
 
-if [ "$driver" = "lvm" -a ! mountpoint "${lvbasedir}/mounted" ]; then
-	echo "There is no checkout to abort"
-	exit 0
+if [ "$driver" = "lvm" ]; then
+	if ! mountpoint "${lvbasedir}/mounted" > /dev/null 2>&1; then
+		echo "There is no checkout to abort"
+		exit 0
+	fi
 fi
 
 if [ "$1" = "-f" ]; then
