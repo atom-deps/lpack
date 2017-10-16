@@ -136,5 +136,12 @@ diffshasum=`sha256sum ${basedir}/WORKSPACE.tar | awk '{ print $1 }'`
 gzip -n ${basedir}/WORKSPACE.tar
 newshasum=`sha256sum ${basedir}/WORKSPACE.tar.gz | awk '{ print $1 }'`
 mv ${basedir}/WORKSPACE.tar.gz "${layoutdir}/blobs/sha256/${newshasum}"
-mv "${mountdir}/mounted" "${mountdir}/${newshasum}"
+if [ "$driver" = "btrfs" ]; then
+	mv "${mountdir}/mounted" "${mountdir}/${newshasum}"
+else
+	mkdir "${mountdir}/${newshasum}"
+	mount --move "${mountdir}/mounted" "${mountdir}/${newshasum}"
+	rmdir "${mountdir}/mounted"
+	lvrename "${vg}" mounted "${newshasum}"
+fi
 $(dirname $0)/add_oci_tag.py "${layoutdir}" "${reftag}" "${newtag}" "${diffshasum}" "${newshasum}"

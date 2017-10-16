@@ -34,4 +34,7 @@ if [ -f "${lofile}" ]; then
 	rm -- "${lofile}"
 fi
 
+# unmount our --make-shared private mount
+umount -l "${lvbasedir}"
+
 rm -rf "${lvbasedir}"

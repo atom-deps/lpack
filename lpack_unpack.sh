@@ -82,6 +82,15 @@ unpack() {
 	remove_whiteouts "${dest}"
 }
 
+# On checkin we will want to mount --move, but that isn't allowed
+# under a shared parent mount.  So make the lvm basedir slave.
+if [ "$driver" = "lvm" ]; then
+	if ! mountpoint -q "${lvbasedir}"; then
+		mount --bind "${lvbasedir}" "${lvbasedir}"
+		mount --make-slave "${lvbasedir}"
+	fi
+fi
+
 for l in ${labels}; do
 	layers=`umoci stat --image ${layoutdir}:${l} | grep sha256` || true
 	if [ -z "${layers}" ]; then

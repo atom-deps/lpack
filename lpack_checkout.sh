@@ -68,7 +68,7 @@ else
 	dest="${lvbasedir}/mounted"
 	lower="${vg}/${tag}"
 	lvcreate -n "mounted" --snapshot "${lower}"
-	lvchange -ay -K "${lower}"
+	lvchange -ay -K "${vg}/mounted"
 	mkdir -p "${dest}"
-	mount -t ext4 "/dev/${lower}" "${dest}"
+	mount -t ext4 "/dev/${vg}/mounted" "${dest}"
 fi
