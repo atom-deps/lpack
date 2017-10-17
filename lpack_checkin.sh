@@ -43,25 +43,25 @@ else
 fi
 
 if [ "${driver}" = "btrfs" ]; then
-	if [ ! -d "${btrfsmount}/mounted" ]; then
-	    echo "No tags are checked out"
-	    exit 1
-	fi
-	reftag="$(cat ${basedir}/btrfs.mounted_tag)"
-	refsha="$(cat ${basedir}/btrfs.mounted_sha)"
-	dir1="${btrfsmount}/${refsha}"
-	dir2="${btrfsmount}/mounted"
-	mountdir="${btrfsmount}"
+    if [ ! -d "${btrfsmount}/mounted" ]; then
+        echo "No tags are checked out"
+        exit 1
+    fi
+    reftag="$(cat ${basedir}/btrfs.mounted_tag)"
+    refsha="$(cat ${basedir}/btrfs.mounted_sha)"
+    dir1="${btrfsmount}/${refsha}"
+    dir2="${btrfsmount}/mounted"
+    mountdir="${btrfsmount}"
 else
-	if ! mountpoint -q "${lvbasedir}/mounted"; then
-	    echo "No tags are checked out"
-	    exit 1
-	fi
-	reftag="$(cat ${basedir}/lvm.mounted_tag)"
-	refsha="$(cat ${basedir}/lvm.mounted_sha)"
-	dir1="${lvbasedir}/${refsha}"
-	dir2="${lvbasedir}/mounted"
-	mountdir="${lvbasedir}"
+    if ! mountpoint -q "${lvbasedir}/mounted"; then
+        echo "No tags are checked out"
+        exit 1
+    fi
+    reftag="$(cat ${basedir}/lvm.mounted_tag)"
+    refsha="$(cat ${basedir}/lvm.mounted_sha)"
+    dir1="${lvbasedir}/${refsha}"
+    dir2="${lvbasedir}/mounted"
+    mountdir="${lvbasedir}"
 fi
 
 workspace="${basedir}/WORKSPACE"
@@ -105,7 +105,12 @@ diff -Nrq "${dir1}" "${dir2}" | while read line; do
         # Example:
         # File /var/lib/atom/btrfs/975a316af08091b77ff5c213fabb953a8afa53ba7893a303602e05fb9dc18f0c/fifo1 is a fifo while file /var/lib/atom/btrfs/mounted/fifo1 is a character special file
         full1="$2"
-        full2="$8"
+	next=6
+	while [ "${!next}" != "while" ]; do
+		next=$((next + 1))
+	done
+	next=$((next + 2))
+        full2="${!next}"
     else
         full1="$2"
         full2="$4"
@@ -118,6 +123,10 @@ diff -Nrq "${dir1}" "${dir2}" | while read line; do
     fnam2=`basename "${f2}"`
     if [ ! -z "$(dir)" ]; then
         mkdir -p "${workspace}/${dir}"
+    fi
+    if [ -z "$fnam2" ]; then
+        echo "empty filename, line was $line"
+        continue
     fi
     if [ ! -e "${full2}" -a ! -h "${full2}" ]; then
         # whiteout
@@ -137,11 +146,11 @@ gzip -n ${basedir}/WORKSPACE.tar
 newshasum=`sha256sum ${basedir}/WORKSPACE.tar.gz | awk '{ print $1 }'`
 mv ${basedir}/WORKSPACE.tar.gz "${layoutdir}/blobs/sha256/${newshasum}"
 if [ "$driver" = "btrfs" ]; then
-	mv "${mountdir}/mounted" "${mountdir}/${newshasum}"
+    mv "${mountdir}/mounted" "${mountdir}/${newshasum}"
 else
-	mkdir "${mountdir}/${newshasum}"
-	mount --move "${mountdir}/mounted" "${mountdir}/${newshasum}"
-	rmdir "${mountdir}/mounted"
-	lvrename "${vg}" mounted "${newshasum}"
+    mkdir "${mountdir}/${newshasum}"
+    mount --move "${mountdir}/mounted" "${mountdir}/${newshasum}"
+    rmdir "${mountdir}/mounted"
+    lvrename "${vg}" mounted "${newshasum}"
 fi
 $(dirname $0)/add_oci_tag.py "${layoutdir}" "${reftag}" "${newtag}" "${diffshasum}" "${newshasum}"
