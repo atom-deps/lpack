@@ -1,4 +1,4 @@
-#!/bin/bash -ue
+#!/bin/bash -uex
 # setup_lvm.sh: set up lvm on a loopback file
 
 # Copyright (C) 2017 Cisco Inc
@@ -21,32 +21,37 @@
 
 id_check
 
-line=`losetup -a | grep "/dev/$lvdev:"` || true
+# sadly if we want to be able to run grub, we need a partition
+# table, and so we are best off using nbd
+modprobe nbd
+
 needattach=0
 needfile=0
-if [ -z "$line" ]; then
+if ! lsblk | grep -q "${lvdev}"; then
 	needattach=1
-elif ! echo "$line" | grep -q $lofile; then
-	echo "$lvdev is in use"
-	exit 1
 fi
 
 if [ ! -f "${lofile}" ]; then
 	needfile=1
-        truncate -s 20G "${lofile}"
+        truncate -s "${lvsize}" "${lofile}"
+	sfdisk "${lofile}" << EOF
+, 2G;
+,,8e;
+EOF
+	sync
 fi
 
 if [ "$needattach" = "1" ]; then
-	losetup "/dev/${lvdev}" "${lofile}"
+	qemu-nbd -f raw -c "/dev/${lvdev}" "${lofile}"
 fi
 
 if [ "$needfile" = "1" ]; then
-	pvcreate "/dev/${lvdev}"
-	vgcreate "${vg}" "/dev/${lvdev}"
+	pvcreate "/dev/${lvdev}p2"
+	vgcreate "${vg}" "/dev/${lvdev}p2"
 
 	# create the thinpool
 	# datalv
-	lvcreate -n ThinDataLV -L 15G "${vg}"
+	lvcreate -n ThinDataLV -L "${thinsize}" "${vg}"
 	# metadata lv
 	lvcreate -n MetaDataLV -L 1G "${vg}"
 

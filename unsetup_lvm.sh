@@ -28,7 +28,7 @@ done
 
 vgremove -y "${vg}" "/dev/${lvdev}" || true
 
-losetup -d "/dev/${lvdev}"
+qemu-nbd -d "/dev/${lvdev}"
 
 if [ -f "${lofile}" ]; then
 	rm -- "${lofile}"

@@ -16,7 +16,9 @@ vg="stacker"
 lvbasedir="${basedir}/lvm"
 # I don't want to keep state, so you can specify the loopback dev
 # to use for lvm here, but it must be free for our use.
-lvdev="loop0"
+lvdev="nbd0"
+lvsize="20G"
+thinsize="15G"
 driver="vfs"
 
 parse_config() {
