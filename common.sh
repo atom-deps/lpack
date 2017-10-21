@@ -7,7 +7,7 @@ basedir="$(pwd)"
 # layoutdir is the OCI layout directory
 layoutdir="${basedir}/oci"
 # lofile is the btrfs loopback file
-lofile="${basedir}/btrfs.img"
+lofile=
 # btrfsmount is where the btrfs filesystem is mounted.
 btrfsmount="${basedir}/btrfs"
 # vg is the LVM vg to use
@@ -49,10 +49,12 @@ if [ ! -d "${basedir}" ]; then
 	exit 1
 fi
 
-if [ -d "${btrfsmount}" ]; then
-	driver="btrfs"
-elif vgs "${vg}" > /dev/null 2>&1; then
-	driver="lvm"
+if [ -z "$lofile" ]; then
+	if [ "${driver}" = "lvm" ]; then
+		lofile="lvm.img"
+	else
+		lofile = "btrfs.img"
+	fi
 fi
 
 id_check() {
