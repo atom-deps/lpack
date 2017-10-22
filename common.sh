@@ -53,7 +53,7 @@ if [ -z "$lofile" ]; then
 	if [ "${driver}" = "lvm" ]; then
 		lofile="lvm.img"
 	else
-		lofile = "btrfs.img"
+		lofile="btrfs.img"
 	fi
 fi
 
