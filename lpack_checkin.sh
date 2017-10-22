@@ -79,7 +79,7 @@ trap cleanup EXIT
 #diff --no-dereference -Nrq "${btrfsmount}/${refsha}" "${btrfsmount}/mounted" | while read line; do
 dir1len=${#dir1}
 dir2len=${#dir2}
-diff -Nrq "${dir1}" "${dir2}" | while read line; do
+diff -rq "${dir1}" "${dir2}" | while read line; do
     # TODO - this is obviously insufficient - needs to i.e.
     # maintain mtime etc.  That will all be fixed when we just
     # start using the oci or umoci go libraries.
