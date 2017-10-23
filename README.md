@@ -1,36 +1,76 @@
 # lpack
 
-This is a toy one-night implementation for unpacking an OCI image into
-btrfs layers.  Assuming the OCI layout is in /home/serge/project/oci, then
-the contents will be expanded under /home/serge/project/btrfs/.  Each layer
-represented in a btrfs snapshot named by its shasum under
-/home/serge/project/btrfs/.
+lpack unpacks OCI images into CoW layers using either btrfs or lvm,
+according to a configuration in ./atom_config.yaml.  A sample btrfs
+configuration looks like:
 
-This will be re-written in go - the bash implementation was to get a
-sense of any gotchas which needed to be considered.
+```yaml
+driver: "btrfs"
+layoutdir: ~/oci
+lofile: ~/btrfs.img
+btrfsmount: ~/experiment
+```
+
+A sample lvm configuration is:
+
+```yaml
+driver: "lvm"
+vg: "atom"
+lvbasedir: "~/lvm"
+lvdev: "nbd1"
+```
+
+The shortest working configuration includes only the driver line,
+setting it to either lvm or btrfs.  In this case, the OCI layout
+is ./oci, the loopback file is btrfs.img or lvm.img, the LV is
+stacker, the lv device is /dev/nbd0, and the layouts are mounted
+under ./btrfs or ./lvm.
+
+This will be re-written as 'stacker' (in golang).
+
+## Installing
+
+Since this is a proof of concept, installation is hacky:
+
+```bash
+mkdir -p /usr/share/atom
+cp *.py *.sh /usr/share/atom
+cp lpack /usr/bin
+```
 
 ## Trying it out
 
-If you do not have a btrfs rootfs, use setup_btrfs.sh to setup and mount
-a btrfs-formatted loopback file.
+Setup a loopback device using
 
-If your rootfs is btrfs, then you could simply mkdir ./btrfs.
+```bash
+lpack setup
+```
 
-Use lpack_unpack.sh to unpack ./oci into ./btrfs (which setup_btrfs has
-created).
+Tear it down using
+
+```bash
+lpack unsetup
+```
+
+Unpack the OCI layers using
+
+```bash
+lpack unpack
+```
 
 Use
 
 ```bash
-lpack_checkout.sh <tag>
+lpack checkout <tag>
 ```
 
-to check a tag out under ./btrfs/mounted.
-You can then make changes to the rootfs under ./btrfs/mounted, and check
+to check a tag out under ./btrfs/mounted or ./lvm/mounted.
+
+You can then make changes to the rootfs under the mounted directory and check
 the changes in as a new tag using
 
 ```bash
-./lpack_checkin.sh <newtag>
+lpack checkin<newtag>
 ```
 
 If you do not provide a new tag, then YYYY-MM-DD_vN will be used, where
@@ -39,11 +79,5 @@ For instance, 2017-09-17_v1.
 
 ## TODO
 
-Once we're comfortable that the overall usage meets our needs, we will
-rewrite it - probably in golang.  The CoW fs backend will be pluggable,
-so that btrfs, zfs, aufs, and lvm should all be (eventually) usable.
-
-lpack will become a single command, i.e. 'lpack [checkin|ci]'.
-
-The 'lpack checkin' command will be fixed to not require an unpack and
-repack - ideally just a diff and generation of a json index.
+This will be merged with 'genoci' and rewritten in golang as
+github.com/atom-deps/stacker.

@@ -52,7 +52,7 @@ case "$1" in
     "status") /usr/share/lpack/lpack_status.sh ${@:2} ;;
     "abort") /usr/share/lpack/lpack_abort.sh ${@:2};;
     "pull") /usr/share/lpack/lpack_pull.py ${@:2};;
-    "setup") /usr/share/lpack/setup_btrfs.sh;;
-    "unsetup") /usr/share/lpack/unsetup_btrfs.sh;;
+    "setup") /usr/share/lpack/setup_cow.sh;;
+    "unsetup") /usr/share/lpack/unsetup_cow.sh;;
     *) usage;;
 esac
