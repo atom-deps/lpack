@@ -18,20 +18,56 @@
 
 . $(dirname $0)/common.sh
 
+echo "Layoutdir: ${layoutdir}"
+
 if [ "$driver" != "btrfs" -a "$driver" != "lvm" ]; then
+	echo "Driver: vfs"
 	exit 0
 fi
 
 if [ "$driver" = "btrfs" ]; then
+	echo "Driver: btrfs"
+	if [ -z "${lofile}" ]; then
+		echo "No loopback"
+	else
+		echo -n "Loopback file: ${lofile}, "
+		if [ -f "${lofile}" ]; then
+			echo -n "exists, "
+			if mountpoint -q "${btrfsmount}"; then
+				echo "mounted"
+			else
+				echo "not mounted"
+			fi
+		else
+			echo "does not exist"
+		fi
+	fi
+	echo "Mountpoint: ${btrfsmount}"
 	if [ ! -d "${btrfsmount}/mounted" ]; then
-		echo "Noting is checked out"
-		exit 0
+		echo "Nothing is checked out"
+	else
+		echo "$(cat ${basedir}/btrfs.mounted_tag) is checked out"
 	fi
-	echo "$(cat ${basedir}/btrfs.mounted_tag) is checked out"
 else
-	if ! mountpoint "${lvbasedir}/mounted" > /dev/null 2>&1; then
-		echo "Noting is checked out"
-		exit 0
+	echo "Driver: lvm"
+	echo "Volume group: ${vg}"
+	if [ -z "${lofile}" ]; then
+		echo "No backing file"
+	else
+		echo "Backing file: ${lofile}"
+		sz=$(cat /sys/class/block/${lvdev}/size)
+		if [ $sz -eq 0 ]; then
+			echo "Not attached"
+		else
+			echo "Attached"
+		fi
+		echo "NBD device: ${lvdev}"
+		echo "Configured size: ${lvsize}"
+		echo "Thinpool size: ${thinsize}"
 	fi
-	echo "$(cat ${basedir}/lvm.mounted_tag) is checked out"
+	if ! mountpoint "${lvbasedir}/mounted" > /dev/null 2>&1; then
+		echo "Nothing is checked out"
+	else
+		echo "$(cat ${basedir}/lvm.mounted_tag) is checked out"
+	fi
 fi

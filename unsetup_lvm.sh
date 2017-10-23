@@ -22,19 +22,29 @@
 
 id_check
 
+proceed="?"
+
+if [ "$1" = "-f" -o "$1" = "--force" ]; then
+	proceed="y"
+fi
+
+
 for d in ${lvbasedir}/*; do
 	umount -l "$d" || true
 done
-
-vgremove -y "${vg}" "/dev/${lvdev}" || true
-
-qemu-nbd -d "/dev/${lvdev}"
-
-if [ -f "${lofile}" ]; then
-	rm -- "${lofile}"
-fi
 
 # unmount our --make-shared private mount
 umount -l "${lvbasedir}"
 
 rm -rf "${lvbasedir}"
+
+qemu-nbd -d "/dev/${lvdev}"
+
+if [ -f "${lofile}" ]; then
+	if [ "${proceed}" = "?" ]; then
+		read -p "This will remove your lvm backing file - are you sure (y/n)" proceed
+	fi
+	if [ "${proceed}" = "y" ]; then
+		rm -- "${lofile}"
+	fi
+fi

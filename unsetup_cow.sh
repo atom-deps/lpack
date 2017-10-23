@@ -1,6 +1,6 @@
 #!/bin/bash
-# unsetup_btrfs.sh: remove btrfs on a mounted loopback fs
-#  Note - this will remove the loopback file, erasing all your data
+# unsetup_cow.sh: remove copy-on-write loopback fs per
+# the atom_config.yaml configuration
 
 # Copyright (C) 2017 Cisco Inc
 #
@@ -18,30 +18,15 @@
 
 # set -xe
 
-. $(dirname $0)/common.sh
+## Argument: -f || --force, passed along to unsetup_{lvm|btrfs}.sh
+
+dir=$(dirname $0)
+. ${dir}/common.sh
 
 id_check
 
-proceed="?"
-
-if [ "$1" = "-f" -o "$1" = "--force" ]; then
-	proceed="y"
-fi
-
-if mountpoint -q "${btrfsmount}"; then
-	umount -l "${btrfsmount}"
-	sleep 2
-fi
-
-if [ -d "${btrfsmount}" ]; then
-	rmdir "${btrfsmount}"
-fi
-
-if [ -f "${lofile}" ]; then
-	if [ "${proceed}" = "?" ]; then
-		read -p "This will remove your btrfs backing file - are you sure (y/n)" proceed
-	fi
-	if [ "${proceed}" = "y" ]; then
-		rm -- "${lofile}"
-	fi
+if [ "${driver}" = "btrfs" ]; then
+	${dir}/unsetup_btrfs.sh $*
+elif [ "${driver}" = "lvm" ]; then
+	${dir}/unsetup_lvm.sh $*
 fi
