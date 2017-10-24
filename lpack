@@ -34,8 +34,10 @@ usage() {
     echo "    lpack chroot - run a shell or command inside a chroot in the checkout"
     echo "    lpack pull - pull an image using skopeo"
     echo "    lpack status - show which tag if any is checked out"
-    echo "    lpack setup - setup btrfs filesystem to unpack into"
-    echo "    lpack unsetup - unsetup btrfs.  Make sure to checkin changes before doing this."
+    echo "    lpack setup - setup cow filesystem to unpack into"
+    echo "    === danger zone.  be careful with the below ==="
+    echo "    lpack detach - unmount and detach cow.  Make sure to checkin changes before doing this."
+    echo "    lpack unsetup - unsetup cow.  Make sure to checkin changes before doing this."
     exit 1
 }
 
@@ -53,6 +55,7 @@ case "$1" in
     "abort") /usr/share/lpack/lpack_abort.sh ${@:2};;
     "pull") /usr/share/lpack/lpack_pull.py ${@:2};;
     "setup") /usr/share/lpack/setup_cow.sh;;
+    "detach") /usr/share/lpack/detach_cow.sh;;
     "unsetup") /usr/share/lpack/unsetup_cow.sh;;
     *) usage;;
 esac
