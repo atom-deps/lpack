@@ -17,7 +17,6 @@ A sample lvm configuration is:
 driver: "lvm"
 vg: "atom"
 lvbasedir: "~/lvm"
-lvdev: "nbd1"
 ```
 
 The shortest working configuration includes only the driver line,

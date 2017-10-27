@@ -55,13 +55,14 @@ else
 		echo "No backing file"
 	else
 		echo "Backing file: ${lofile}"
+        lvdev=$(cat .lpack.lvm.loopdev)
 		sz=$(cat /sys/class/block/${lvdev}/size)
 		if [ $sz -eq 0 ]; then
 			echo "Not attached"
 		else
 			echo "Attached"
 		fi
-		echo "NBD device: ${lvdev}"
+		echo "Loop device: ${lvdev}"
 		echo "Configured size: ${lvsize}"
 		echo "Thinpool size: ${thinsize}"
 	fi

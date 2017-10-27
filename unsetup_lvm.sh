@@ -49,7 +49,7 @@ fi
 
 if [ -n "${loopdev}" ]; then
     echo "calling kpartx"
-    vgchange -an "${vg}"
+    vgchange -an "${vg}" || true
     kpartx -vd "${lofile}"
     pvscan --cache
 fi

@@ -42,6 +42,8 @@ id_check
 
 needattach=1
 createdfile=0
+# This is dangerous and insufficient - we need a way
+# to make sure that *our* lofile is attached to this device
 if [ -f .lpack.lvm.loopdev ]; then
     dev=$(cat .lpack.lvm.loopdev)
     sz=$(cat /sys/block/${dev}/size)

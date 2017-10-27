@@ -39,9 +39,22 @@ elif [ "${driver}" = "lvm" ]; then
 	done
 
 	# unmount our --make-shared private mount
-	umount -l "${lvbasedir}"
-
+	umount -l "${lvbasedir}" || true
 	rm -rf "${lvbasedir}"
 
-	qemu-nbd -d "/dev/${lvdev}"
+    loopdev=
+    if [ -f .lpack.lvm.loopdev ]; then
+        dev=$(cat .lpack.lvm.loopdev)
+        sz=$(cat /sys/block/${dev}/size)
+        if [ $sz -ne 0 ]; then
+            loopdev=$dev
+        fi
+    fi
+
+    if [ -n "${loopdev}" ]; then
+        vgchange -an "${vg}" || true
+        kpartx -vd "${lofile}"
+        pvscan --cache
+    fi
+
 fi
