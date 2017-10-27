@@ -19,49 +19,70 @@
 
 . $(dirname $0)/common.sh
 
+loopdev=""
+if [ -f .lpack.lvm.loopdev ]; then
+    loopdev=$(cat .lpack.lvm.loopdev)
+fi
+dokpartx() {
+    local kpartx_ret=$(sudo kpartx -vas $1)
+
+    [ -z "$kpartx_ret" ] && {
+            log "Failed to map image partitions into LVM"
+            exit 1
+    }
+
+    local kpartx_ret=$(sudo kpartx -vas $1)
+    local loopparts=( `echo ${kpartx_ret} | fmt -w 1 | grep ^loop` )
+    loopdev=${loopparts[0]::${#loopparts[0]}-2}
+    echo $loopdev > .lpack.lvm.loopdev
+}
+
+
 id_check
 
-# sadly if we want to be able to run grub, we need a partition
-# table, and so we are best off using nbd
-modprobe nbd
-
-needattach=0
-needfile=0
-if ! lsblk | grep -q "${lvdev}"; then
-	needattach=1
+needattach=1
+createdfile=0
+if [ -f .lpack.lvm.loopdev ]; then
+    dev=$(cat .lpack.lvm.loopdev)
+    sz=$(cat /sys/block/${dev}/size)
+    if [ $sz -ne 0 ]; then
+        loopdev="$dev"
+        needattach=0
+    fi
 fi
 
 if [ ! -f "${lofile}" ]; then
-	needfile=1
-        truncate -s "${lvsize}" "${lofile}"
-	sfdisk "${lofile}" << EOF
+    createdfile=1
+    truncate -s "${lvsize}" "${lofile}"
+    sfdisk "${lofile}" << EOF
 , 2G;
 ,,8e;
 EOF
-	sync
+    sync
 fi
 
 if [ "$needattach" = "1" ]; then
-	qemu-nbd -f raw -c "/dev/${lvdev}" "${lofile}"
+    echo "setting up loopback file: ${lofile}"
+    dokpartx "${lofile}"
 fi
 
-if [ "$needfile" = "1" ]; then
-	pvcreate "/dev/${lvdev}p2"
-	vgcreate "${vg}" "/dev/${lvdev}p2"
+if [ "$createdfile" = "1" ]; then
+    pvcreate "/dev/mapper/${loopdev}p2"
+    vgcreate "${vg}" "/dev/mapper/${loopdev}p2"
 
-	# create the thinpool
-	# datalv
-	lvcreate -n ThinDataLV -L "${thinsize}" "${vg}"
-	# metadata lv
-	lvcreate -n MetaDataLV -L 1G "${vg}"
+    # create the thinpool
+    # datalv
+    lvcreate -n ThinDataLV -L "${thinsize}" "${vg}"
+    # metadata lv
+    lvcreate -n MetaDataLV -L 1G "${vg}"
 
-	lvconvert -y --type thin-pool --poolmetadata "${vg}/MetaDataLV" "${vg}/ThinDataLV"
+    lvconvert -y --type thin-pool --poolmetadata "${vg}/MetaDataLV" "${vg}/ThinDataLV"
 
-	# Now we can create thin lvs using:
-	# lvcreate -n thin1 -V 10G --thinpool ThinDataLV "${vg}"
-	# and snapshot it using:
-	# lvcreate -n thin2 --snapshot ${vg}/thin1
-	# lvchange -ay -K ${vg}/thin2
+    # Now we can create thin lvs using:
+    # lvcreate -n thin1 -V 10G --thinpool ThinDataLV "${vg}"
+    # and snapshot it using:
+    # lvcreate -n thin2 --snapshot ${vg}/thin1
+    # lvchange -ay -K ${vg}/thin2
 fi
 
 mkdir -p "$lvbasedir"

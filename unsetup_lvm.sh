@@ -25,26 +25,40 @@ id_check
 proceed="?"
 
 if [ "$1" = "-f" -o "$1" = "--force" ]; then
-	proceed="y"
+    proceed="y"
 fi
 
 
 for d in ${lvbasedir}/*; do
-	umount -l "$d" || true
+    umount -l "$d" || true
 done
 
 # unmount our --make-shared private mount
-umount -l "${lvbasedir}"
+umount -l "${lvbasedir}" || true
 
 rm -rf "${lvbasedir}"
 
-qemu-nbd -d "/dev/${lvdev}"
+loopdev=
+if [ -f .lpack.lvm.loopdev ]; then
+    dev=$(cat .lpack.lvm.loopdev)
+    sz=$(cat /sys/block/${dev}/size)
+    if [ $sz -ne 0 ]; then
+        loopdev=$dev
+    fi
+fi
+
+if [ -n "${loopdev}" ]; then
+    echo "calling kpartx"
+    vgchange -an "${vg}"
+    kpartx -vd "${lofile}"
+    pvscan --cache
+fi
 
 if [ -f "${lofile}" ]; then
-	if [ "${proceed}" = "?" ]; then
-		read -p "This will remove your lvm backing file - are you sure (y/n)" proceed
-	fi
-	if [ "${proceed}" = "y" ]; then
-		rm -- "${lofile}"
-	fi
+    if [ "${proceed}" = "?" ]; then
+        read -p "This will remove your lvm backing file - are you sure (y/n)" proceed
+    fi
+    if [ "${proceed}" = "y" ]; then
+        rm -- "${lofile}"
+    fi
 fi
